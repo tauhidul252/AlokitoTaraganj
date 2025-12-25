@@ -13,6 +13,7 @@ import 'government_services_screen.dart';
 import 'find_doctor_screen.dart';
 import 'professional_services_screen.dart';
 import 'complaint_box_screen.dart';
+import 'settings_screen.dart';
 import '../widgets/news_card.dart'; // Ensure this exists
 
 class HomeScreen extends StatelessWidget {
@@ -130,7 +131,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 1. Modern Header & Search
-              _buildHeader(),
+              _buildHeader(context),
 
               const SizedBox(height: 20),
 
@@ -207,7 +208,7 @@ class HomeScreen extends StatelessWidget {
 
   // --- WIDGETS ---
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -246,10 +247,15 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.blue.shade50,
-                child: const Icon(LucideIcons.user, color: Colors.blue),
+              // Settings Button
+              InkWell(
+                onTap: () => _navigateTo(context, const SettingsScreen()),
+                borderRadius: BorderRadius.circular(25),
+                child: CircleAvatar(
+                  radius: 25,
+                  backgroundColor: Colors.blue.shade50,
+                  child: const Icon(LucideIcons.settings, color: Colors.blue),
+                ),
               ),
             ],
           ),
