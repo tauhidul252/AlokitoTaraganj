@@ -89,7 +89,7 @@ class GovernmentServicesScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -101,8 +101,9 @@ class GovernmentServicesScreen extends StatelessWidget {
         child: InkWell(
           onTap: () async {
             final Uri uri = Uri.parse(url);
-            if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-              // ignore: use_build_context_synchronously
+            bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+            if (!context.mounted) return;
+            if (!launched) {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Could not launch $url')));
@@ -115,7 +116,7 @@ class GovernmentServicesScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: 32, color: color),
