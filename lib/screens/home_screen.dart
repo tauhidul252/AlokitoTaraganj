@@ -14,7 +14,8 @@ import 'find_doctor_screen.dart';
 import 'professional_services_screen.dart';
 import 'complaint_box_screen.dart';
 import 'settings_screen.dart';
-import '../widgets/news_card.dart'; // Ensure this exists
+import '../widgets/news_card.dart';
+import '../utils/translations.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(int) onTabChange;
@@ -115,7 +116,7 @@ class HomeScreen extends StatelessWidget {
         'action': () => _navigateTo(context, const TouristSpotsScreen()),
       },
       {
-        'title': 'Education',
+        'title': lang.t('Education', 'শিক্ষা'),
         'icon': LucideIcons.graduationCap,
         'color': Colors.brown,
         'action': () => _navigateTo(context, const EducationScreen()),
@@ -123,22 +124,21 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Soft Grey Background
+      backgroundColor: const Color(0xFFF0F4FF),
       body: SafeArea(
+        top: true,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Modern Header & Search
-              _buildHeader(context),
+              // 1. Carousel Slider
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _buildCarousel(context),
+              ),
 
-              const SizedBox(height: 20),
-
-              // 2. Carousel Slider
-              _buildCarousel(context),
-
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // 3. Category Grid (The Core UI)
               Padding(
@@ -147,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'All Services',
+                      lang.t('All Services', 'সকল সেবা'),
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -182,22 +182,39 @@ class HomeScreen extends StatelessWidget {
               // 4. News Section
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Recent Updates',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF2D3142),
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      lang.t('Recent Updates', 'সাম্প্রতিক আপডেট'),
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF2D3142),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => onTabChange(1), // সংবাদ ট্যাব (index 1)
+                      child: Text(
+                        lang.t('See All', 'সব দেখুন'),
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF1D4ED8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-              // News Cards would go here (Use your existing widget)
-              const NewsCard(
-                title: "District Fair Open",
-                source: "Admin",
-                date: "Now",
-                imageUrl: "",
+              const SizedBox(height: 5),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: NewsCard(
+                  title: lang.t("New Park Opening in Taraganj", "তারগঞ্জ উপজেলায় নতুন পার্কের উদ্বোধন"),
+                  source: lang.t("Admin", "প্রশাসন"),
+                  date: lang.t("Just Now", "এইমাত্র"),
+                  imageUrl: "",
+                ),
               ),
             ],
           ),
@@ -208,95 +225,19 @@ class HomeScreen extends StatelessWidget {
 
   // --- WIDGETS ---
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(30),
-          bottomRight: Radius.circular(30),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0D000000), // Very soft shadow
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Welcome Back,',
-                    style: GoogleFonts.inter(color: Colors.grey, fontSize: 14),
-                  ),
-                  Text(
-                    'Citizen!',
-                    style: GoogleFonts.outfit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2D3142),
-                    ),
-                  ),
-                ],
-              ),
-              // Settings Button
-              InkWell(
-                onTap: () => _navigateTo(context, const SettingsScreen()),
-                borderRadius: BorderRadius.circular(25),
-                child: CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.blue.shade50,
-                  child: const Icon(LucideIcons.settings, color: Colors.blue),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F7FA),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                const Icon(LucideIcons.search, color: Colors.grey),
-                const SizedBox(width: 10),
-                Text(
-                  'Find a service...',
-                  style: GoogleFonts.inter(color: Colors.grey[500]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCarousel(BuildContext context) {
     return CarouselSlider(
       options: CarouselOptions(
         height: 160.0,
         autoPlay: true,
-        enlargeCenterPage: true,
-        viewportFraction: 0.85,
-        aspectRatio: 16 / 9,
+        enlargeCenterPage: false,
+        viewportFraction: 0.9,
+        padEnds: false,
       ),
       items: [1, 2, 3].map((i) {
         return Container(
           width: MediaQuery.of(context).size.width,
-          margin: const EdgeInsets.symmetric(horizontal: 5.0),
+          margin: const EdgeInsets.symmetric(horizontal: 6.0),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.blue.shade400, Colors.blue.shade800],
