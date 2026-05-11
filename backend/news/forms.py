@@ -45,9 +45,14 @@ class NewsPostForm(forms.ModelForm):
                 ]
 
         # Only allow admin or moderators to change the status
-        if self.user and not self.user.is_superuser and not self.user.groups.filter(name='Moderator').exists():
-            if 'status' in self.fields:
+        if 'status' in self.fields:
+            # If not admin and not moderator, remove status (for reporters)
+            if self.user and not self.user.is_superuser and not self.user.groups.filter(name='Moderator').exists():
                 self.fields.pop('status')
+            # If news is already approved and user is not superuser, disable status change
+            elif self.instance.pk and self.instance.status == 'approved' and not self.user.is_superuser:
+                self.fields['status'].disabled = True
+                self.fields['status'].help_text = "অনুমোদিত নিউজ শুধুমাত্র অ্যাডমিন পরিবর্তন করতে পারবেন।" if self.t and self.t.get('bn') else "Only Admin can change approved status."
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={

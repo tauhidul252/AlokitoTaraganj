@@ -4,7 +4,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, T
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from .models import NewsPost
+from .models import NewsPost, NewsEditHistory
 from .forms import NewsPostForm, UserForm
 from .translations_dashboard import TRANSLATIONS
 
@@ -83,6 +83,9 @@ class DashboardNewsCreateView(LoginRequiredMixin, CreateView):
         else:
             if getattr(form.instance, 'author', None) is None:
                 form.instance.author = self.request.user
+            # Set approved_by if status is changed to approved
+            if form.cleaned_data.get('status') == 'approved':
+                form.instance.approved_by = self.request.user
         return super().form_valid(form)
 
 class DashboardNewsUpdateView(LoginRequiredMixin, UpdateView):
@@ -99,6 +102,69 @@ class DashboardNewsUpdateView(LoginRequiredMixin, UpdateView):
         kwargs['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
         return kwargs
 
+    def form_valid(self, form):
+        # Store original values to check for changes
+        old_obj = NewsPost.objects.get(pk=self.object.pk)
+        old_status = old_obj.status
+        new_status = form.cleaned_data.get('status')
+        
+        # Security: if original status was approved and user is not admin, keep it approved
+        if old_status == 'approved' and not self.request.user.is_superuser:
+            form.instance.status = 'approved'
+            new_status = 'approved'
+        
+        # Detect detailed changes
+        detailed_changes = []
+        
+        # Check title
+        if str(old_obj.title).strip() != str(form.cleaned_data.get('title')).strip():
+            detailed_changes.append(f"<b>Title Changed:</b><br>Old: {old_obj.title}<br>New: {form.cleaned_data.get('title')}")
+        
+        # Check source
+        if str(old_obj.source).strip() != str(form.cleaned_data.get('source')).strip():
+            detailed_changes.append(f"<b>Source Changed:</b><br>Old: {old_obj.source}<br>New: {form.cleaned_data.get('source')}")
+            
+        # Check content (Save full old content)
+        if str(old_obj.content).strip() != str(form.cleaned_data.get('content')).strip():
+            detailed_changes.append(f"<b>Content Updated. Previous content was:</b><br><div class='mt-2 p-3 bg-gray-100 rounded-lg text-[11px] whitespace-pre-wrap'>{old_obj.content}</div>")
+            
+        # Check image
+        if form.files.get('image'):
+            detailed_changes.append("<b>Image was replaced.</b>")
+        
+        # Determine action type
+        action_type = 'edit'
+        if old_status != new_status:
+            action_type = 'status_change'
+            
+        # Manually save to ensure data is updated before creating history record
+        self.object = form.save()
+        
+        # Construct change message
+        if action_type == 'status_change':
+            change_msg = f"Status: {old_status} → {new_status}"
+        elif detailed_changes:
+            change_msg = "<br><br>".join(detailed_changes)
+        else:
+            change_msg = "Re-saved without changes"
+
+        # Record the history
+        NewsEditHistory.objects.create(
+            news=self.object,
+            user=self.request.user,
+            action_type=action_type,
+            old_status=old_status,
+            new_status=new_status,
+            changes=change_msg
+        )
+        
+        # Set approved_by if status is changed to approved (or kept approved)
+        if new_status == 'approved':
+            self.object.approved_by = self.request.user
+            self.object.save()
+            
+        return redirect(self.get_success_url())
+
 class DashboardNewsDeleteView(LoginRequiredMixin, DeleteView):
     model = NewsPost
     template_name = 'news/dashboard_news_confirm_delete.html'
@@ -108,9 +174,11 @@ class DashboardNewsDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if user.is_superuser or user.groups.filter(name='Moderator').exists():
+        if user.is_superuser:
             return qs
-        return qs.filter(author=user)
+        if user.groups.filter(name='Moderator').exists():
+            return qs.exclude(status='approved')
+        return qs.filter(author=user).exclude(status='approved')
 
 # User Management Views
 class DashboardUserListView(SuperUserRequiredMixin, ListView):
