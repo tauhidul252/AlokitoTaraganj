@@ -1,0 +1,134 @@
+{% extends "news/base.html" %}
+{% block login_content %}
+<div class="min-h-screen w-full flex flex-col md:flex-row bg-[#fdfdfd] overflow-y-auto md:overflow-hidden">
+    <!-- Left Side: Cinematic Visual -->
+    <div class="hidden md:flex md:w-1/2 lg:w-[60%] relative overflow-hidden group">
+        <img src="/media/premium_news_login_bg_v2_1778511701107.png" alt="Login Background" 
+             class="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] ease-out group-hover:scale-110">
+        
+        <!-- Gradient Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-tr from-blue-950 via-blue-900/40 to-transparent"></div>
+        
+        <!-- Animated Light Leak -->
+        <div class="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-blue-400/20 rounded-full blur-[120px] animate-pulse"></div>
+
+        <div class="absolute bottom-20 left-20 right-20 z-10 animate-fade-up">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-12 h-[2px] bg-blue-500"></div>
+                <span class="text-blue-400 text-xs font-black uppercase tracking-[0.3em]">Institutional Grade Admin</span>
+            </div>
+            <h2 class="text-6xl font-black text-white mb-8 leading-[1.1] tracking-tight">
+                Defining the Future <br>of Digital News.
+            </h2>
+            <div class="grid grid-cols-2 gap-12 mt-12">
+                <div class="space-y-2">
+                    <p class="text-3xl font-bold text-white">2.4k+</p>
+                    <p class="text-blue-200/60 text-xs font-bold uppercase tracking-wider">Active Reports</p>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-3xl font-bold text-white">Real-time</p>
+                    <p class="text-blue-200/60 text-xs font-bold uppercase tracking-wider">Global Reach</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Refined Login Interface -->
+    <div class="w-full md:w-1/2 lg:w-[40%] flex items-center justify-center p-6 bg-white relative">
+        <div class="w-full max-w-[320px] relative z-10">
+            <!-- Brand Mark (Extra Compact) -->
+            <div class="mb-6 md:mb-8 flex flex-col items-center md:items-start">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-xl shadow-blue-100 mb-4 group hover:rotate-6 transition-transform">
+                    <i data-lucide="zap" class="w-6 h-6 text-white fill-current"></i>
+                </div>
+                <!-- Mobile Only Title -->
+                <div class="md:hidden text-center">
+                    <h2 class="text-xl font-black text-gray-900 tracking-tight">Alokito Portal</h2>
+                    <p class="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Admin Center</p>
+                </div>
+            </div>
+
+            <div class="mb-6 md:mb-8 text-center md:text-left">
+                <h1 class="text-2xl font-black text-gray-900 mb-2 tracking-tighter">Sign In</h1>
+                <p class="text-gray-400 text-[11px] font-medium leading-relaxed">Enter your credentials for dashboard access.</p>
+            </div>
+
+            <form method="post" class="space-y-8">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-xl text-sm font-bold animate-shake">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <div class="space-y-1 group">
+                    <label for="id_username" class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 transition-colors group-focus-within:text-blue-600">Identity</label>
+                    <div class="relative">
+                        <input type="text" name="username" required id="id_username"
+                               class="w-full bg-gray-50 border-b border-gray-100 rounded-t-lg py-3 px-1 text-sm text-gray-900 font-bold placeholder-gray-300 focus:outline-none focus:border-blue-600 transition-all" 
+                               placeholder="Username">
+                    </div>
+                </div>
+
+                <div class="space-y-1 group">
+                    <div class="flex justify-between items-center pr-1">
+                        <label for="id_password" class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1 transition-colors group-focus-within:text-blue-600">Token</label>
+                        <a href="#" class="text-[9px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">Forgot?</a>
+                    </div>
+                    <div class="relative">
+                        <input type="password" name="password" required id="id_password"
+                               class="w-full bg-gray-50 border-b border-gray-100 rounded-t-lg py-3 px-1 text-sm text-gray-900 font-bold placeholder-gray-300 focus:outline-none focus:border-blue-600 transition-all" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center cursor-pointer group">
+                        <input type="checkbox" class="w-5 h-5 rounded-lg border-gray-200 text-blue-600 focus:ring-blue-500 transition-all">
+                        <span class="text-xs font-bold text-gray-500 ml-3 group-hover:text-gray-700 transition-colors">Remember device</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full bg-gray-900 text-white font-black py-4 rounded-xl shadow-lg hover:bg-blue-600 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-300 flex items-center justify-center space-x-2">
+                    <span class="text-xs tracking-[0.1em]">AUTHENTICATE</span>
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                </button>
+            </form>
+            
+            <div class="mt-20 pt-8 border-t border-gray-100">
+                <div class="flex items-center justify-between">
+                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">© 2026 Alokito Taraganj</p>
+                    <div class="flex space-x-4">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">System Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes fade-up {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    .animate-shake { animation: shake 0.4s ease-in-out; }
+
+    input:focus {
+        background-color: transparent !important;
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

@@ -13,7 +13,6 @@ import 'government_services_screen.dart';
 import 'find_doctor_screen.dart';
 import 'professional_services_screen.dart';
 import 'complaint_box_screen.dart';
-import 'settings_screen.dart';
 import '../widgets/news_card.dart';
 import '../utils/translations.dart';
 
@@ -214,6 +213,7 @@ class HomeScreen extends StatelessWidget {
                   source: lang.t("Admin", "প্রশাসন"),
                   date: lang.t("Just Now", "এইমাত্র"),
                   imageUrl: "",
+                  onTap: () => onTabChange(1),
                 ),
               ),
             ],

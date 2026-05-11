@@ -1,0 +1,45 @@
+{% extends "news/base.html" %}
+{% block login_content %}
+<div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-50 p-4 relative overflow-hidden">
+    <!-- Abstract background blobs -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+    <div class="absolute top-[20%] right-[-10%] w-96 h-96 bg-sky-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+
+    <div class="w-full sm:max-w-md mt-6 px-8 py-10 glass-panel shadow-2xl rounded-3xl relative z-10">
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 gradient-brand rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-4 transform rotate-3">
+                <i data-lucide="zap" class="w-8 h-8 text-yellow-300"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900">Welcome Back</h1>
+            <p class="text-gray-500 mt-2 text-sm">Sign in to manage your app.</p>
+        </div>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input type="text" name="username" class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-white" required placeholder="Enter your username">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input type="password" name="password" class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all bg-white" required placeholder="••••••••">
+                </div>
+            </div>
+            <button type="submit" class="w-full gradient-brand text-white font-bold py-3.5 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex justify-center items-center">
+                <span>Sign in</span>
+                <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>
+            </button>
+        </form>
+    </div>
+</div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>lucide.createIcons();</script>
+{% endblock %}

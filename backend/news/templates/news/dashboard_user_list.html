@@ -1,0 +1,80 @@
+{% extends "news/base.html" %}
+{% block header_title %}{{ t.users }}{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <h3 class="text-2xl font-bold text-gray-800">{{ t.system_users }}</h3>
+        <p class="text-gray-500 text-sm mt-1">{{ t.manage_members }}</p>
+    </div>
+    <a href="{% url 'dashboard-user-create' %}" class="gradient-brand text-white px-5 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center w-full sm:w-auto justify-center">
+        <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i> {{ t.add_user }}
+    </a>
+</div>
+
+<div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50/80">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.users }}</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.email }}</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.roles }}</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.status }}</th>
+                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.actions }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for u in users %}
+                <tr class="hover:bg-blue-50/50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold mr-3">
+                                {{ u.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-gray-900">{{ u.username }}</div>
+                                <div class="text-xs text-gray-500">{{ u.get_full_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ u.email|default:t.no_email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                            {% if u.is_superuser %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200">{{ t.admin|upper }}</span>
+                            {% endif %}
+                            {% for group in u.groups.all %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 border border-blue-200 uppercase">{{ group.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if u.is_active %}
+                            <span class="flex items-center text-xs font-bold text-green-600">
+                                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> {% if lang == 'bn' %}সক্রিয়{% else %}Active{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="flex items-center text-xs font-bold text-red-600">
+                                <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> {% if lang == 'bn' %}নিষ্ক্রিয়{% else %}Inactive{% endif %}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-3">
+                            <a href="{% url 'dashboard-user-update' u.pk %}" class="text-brand-600 hover:text-brand-900 bg-brand-50 p-2 rounded-lg transition-colors" title="{{ t.edit }}">
+                                <i data-lucide="user-cog" class="w-4 h-4"></i>
+                            </a>
+                            {% if u.pk != user.pk %}
+                            <a href="{% url 'dashboard-user-delete' u.pk %}" class="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-lg transition-colors" title="Delete">
+                                <i data-lucide="user-minus" class="w-4 h-4"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
