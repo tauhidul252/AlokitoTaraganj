@@ -79,6 +79,16 @@ class ApiService {
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
+  static Future<List<Map<String, dynamic>>> fetchHospitals() async {
+    final data = await _getList('api/v1/hospitals/');
+    return data.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchAds() async {
+    final data = await _getList('api/v1/ads/');
+    return data.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
   static Future<bool> submitComplaint(Map<String, dynamic> data) async {
     try {
       final res = await http.post(

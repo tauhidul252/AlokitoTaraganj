@@ -1,12 +1,12 @@
 from rest_framework import generics
 from .models import (NewsPost, Category, BloodDonor, Doctor, Job, 
     EmergencyContact, BusSchedule, TouristSpot, EducationInstitution, 
-    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital)
+    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement)
 from .serializers import (NewsPostSerializer, CategorySerializer,
     BloodDonorSerializer, DoctorSerializer, JobSerializer,
     EmergencyContactSerializer, BusScheduleSerializer, TouristSpotSerializer,
     EducationSerializer, GovernmentServiceSerializer, ProfessionalServiceSerializer,
-    ComplaintSerializer, HomeServiceSerializer, HospitalSerializer)
+    ComplaintSerializer, HomeServiceSerializer, HospitalSerializer, AdvertisementSerializer)
 
 class CategoryListAPIView(generics.ListAPIView):
     queryset = Category.objects.all()
@@ -113,3 +113,7 @@ class HomeServiceList(generics.ListAPIView):
 class HospitalListCreateAPIView(generics.ListCreateAPIView):
     queryset = Hospital.objects.filter(is_active=True)
     serializer_class = HospitalSerializer
+
+class AdvertisementListAPIView(generics.ListAPIView):
+    queryset = Advertisement.objects.filter(is_active=True)
+    serializer_class = AdvertisementSerializer

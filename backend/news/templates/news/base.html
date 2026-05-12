@@ -69,6 +69,12 @@
             <!-- Services Section -->
             <div class="px-4 mt-8 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">App Services</div>
 
+            <a href="{% url 'service-ad-list' %}" class="flex items-center px-4 py-3 {% if 'ads' in request.path %}bg-purple-600 text-white shadow-lg shadow-purple-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="megaphone" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Advertisements
+            </a>
+            <a href="{% url 'service-hospital-list' %}" class="flex items-center px-4 py-3 {% if 'hospitals' in request.path %}bg-blue-700 text-white shadow-lg shadow-blue-700/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="hospital" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Hospitals
+            </a>
             <a href="{% url 'service-blood-list' %}" class="flex items-center px-4 py-3 {% if 'blood' in request.path %}bg-red-600 text-white shadow-lg shadow-red-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
                 <i data-lucide="droplets" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Blood Donors
             </a>

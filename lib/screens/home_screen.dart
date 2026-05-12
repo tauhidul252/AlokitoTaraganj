@@ -28,25 +28,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _services = [];
+  List<Map<String, dynamic>> _ads = [];
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchServices();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _loading = true);
+    await Future.wait([
+      _fetchServices(),
+      _fetchAds(),
+    ]);
+    setState(() => _loading = false);
   }
 
   Future<void> _fetchServices() async {
-    setState(() => _loading = true);
     final data = await ApiService.fetchHomeServices();
     if (data.isNotEmpty) {
-      setState(() {
-        _services = data;
-        _loading = false;
-      });
+      _services = data;
     } else {
-      // Fallback to default services if API fails or is empty
       _setFallbackServices();
+    }
+  }
+
+  Future<void> _fetchAds() async {
+    final data = await ApiService.fetchAds();
+    if (data.isNotEmpty) {
+      _ads = data;
     }
   }
 
@@ -187,11 +199,63 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 25),
                 // News Section remains same...
                 _buildNewsSection(),
+                if (_ads.isNotEmpty) _buildAdArea(),
+                const SizedBox(height: 20),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAdArea() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            lang.t('Advertisements', 'বিজ্ঞাপন'),
+            style: GoogleFonts.outfit(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF6B7280),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        CarouselSlider(
+          options: CarouselOptions(
+            height: 100.0,
+            autoPlay: true,
+            enlargeCenterPage: false,
+            viewportFraction: 0.9,
+            padEnds: false,
+          ),
+          items: _ads.map((ad) {
+            return GestureDetector(
+              onTap: () {
+                if (ad['link'] != null && ad['link'].toString().isNotEmpty) {
+                  // Link opening logic if needed
+                }
+              },
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                margin: const EdgeInsets.symmetric(horizontal: 6.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: NetworkImage(ad['image']),
+                    fit: BoxFit.cover,
+                  ),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

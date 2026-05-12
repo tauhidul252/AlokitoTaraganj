@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (NewsPost, Category, BloodDonor, Doctor, Job, 
     EmergencyContact, BusSchedule, TouristSpot, EducationInstitution, 
-    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital)
+    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement)
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,4 +108,9 @@ class HomeServiceSerializer(serializers.ModelSerializer):
 class HospitalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hospital
+        fields = '__all__'
+
+class AdvertisementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advertisement
         fields = '__all__'

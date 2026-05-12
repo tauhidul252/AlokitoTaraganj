@@ -2,11 +2,21 @@ from django.contrib import admin
 from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
     Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
     EducationInstitution, GovernmentService, ProfessionalService, 
-    Complaint, HomeService)
+    Complaint, HomeService, Hospital, Advertisement)
 
 @admin.register(BloodDonor)
 class BloodDonorAdmin(admin.ModelAdmin):
     list_display = ('name', 'blood_group', 'location', 'is_available')
+
+@admin.register(Hospital)
+class HospitalAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone', 'is_verified', 'is_active', 'order')
+    list_editable = ('is_verified', 'is_active', 'order')
+
+@admin.register(Advertisement)
+class AdvertisementAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'created_at')
+    list_editable = ('is_active',)
 
 @admin.register(HomeService)
 class HomeServiceAdmin(admin.ModelAdmin):

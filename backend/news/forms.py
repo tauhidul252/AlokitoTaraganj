@@ -1,7 +1,7 @@
 from django import forms
 from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
     Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
-    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital)
+    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital, Advertisement)
 from django.contrib.auth.models import User, Group
 
 class CategoryForm(forms.ModelForm):
@@ -390,4 +390,15 @@ class HospitalForm(forms.ModelForm):
             'is_verified': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'order': forms.NumberInput(attrs={'class': INPUT_CLASS}),
+        }
+
+class AdvertisementForm(forms.ModelForm):
+    class Meta:
+        model = Advertisement
+        fields = ['title', 'image', 'link', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'বিজ্ঞাপনের শিরোনাম'}),
+            'image': forms.FileInput(attrs={'class': FILE_CLASS}),
+            'link': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'লিংক (ঐচ্ছিক)'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
         }
