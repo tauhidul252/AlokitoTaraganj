@@ -93,7 +93,7 @@ class _MainLayoutState extends State<MainLayout> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
@@ -135,7 +135,7 @@ class _MainLayoutState extends State<MainLayout> {
               Container(
                 margin: const EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: IconButton(
@@ -161,7 +161,7 @@ class _MainLayoutState extends State<MainLayout> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D4ED8).withValues(alpha: 0.08),
+              color: const Color(0xFF1D4ED8).withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),
@@ -172,7 +172,7 @@ class _MainLayoutState extends State<MainLayout> {
           onDestinationSelected: _onItemTapped,
           backgroundColor: Colors.white,
           elevation: 0,
-          indicatorColor: const Color(0xFF1D4ED8).withValues(alpha: 0.12),
+          indicatorColor: const Color(0xFF1D4ED8).withOpacity(0.12),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           destinations: [
             NavigationDestination(
@@ -207,6 +207,5 @@ class AppScrollBehavior extends MaterialScrollBehavior {
   Set<PointerDeviceKind> get dragDevices => {
         PointerDeviceKind.touch,
         PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
       };
 }

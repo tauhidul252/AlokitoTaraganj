@@ -4,8 +4,12 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, T
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from .models import NewsPost, NewsEditHistory, Category, ReporterProfile
-from .forms import NewsPostForm, AdminUserForm, ProfileForm, CategoryForm
+from .models import (NewsPost, NewsEditHistory, Category, ReporterProfile, 
+    BloodDonor, Doctor, Job, EmergencyContact, BusSchedule, TouristSpot,
+    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital)
+from .forms import (NewsPostForm, AdminUserForm, ProfileForm, CategoryForm, 
+    BloodDonorForm, DoctorForm, JobForm, EmergencyContactForm, BusScheduleForm, TouristSpotForm,
+    EducationForm, GovernmentServiceForm, ProfessionalServiceForm, ComplaintForm, HospitalForm)
 from .translations_dashboard import TRANSLATIONS
 
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
@@ -349,3 +353,414 @@ def toggle_reporter_verify(request, pk):
     profile.is_verified = not profile.is_verified  # Toggle
     profile.save()
     return redirect('dashboard-user-list')
+
+
+# ─── Service CRUD Views ─────────────────────────────────────────────────────────
+
+# Blood Donor
+class BloodDonorListView(AdminModeratorRequiredMixin, ListView):
+    model = BloodDonor
+    template_name = 'news/services/blood_donor_list.html'
+    context_object_name = 'donors'
+
+class BloodDonorCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = BloodDonor
+    form_class = BloodDonorForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-blood-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Blood Donor'
+        ctx['back_url'] = reverse_lazy('service-blood-list')
+        return ctx
+
+class BloodDonorUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = BloodDonor
+    form_class = BloodDonorForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-blood-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Blood Donor'
+        ctx['back_url'] = reverse_lazy('service-blood-list')
+        return ctx
+
+class BloodDonorDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = BloodDonor
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-blood-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Blood Donor'
+        ctx['back_url'] = reverse_lazy('service-blood-list')
+        return ctx
+
+
+# Doctor
+class DoctorListView(AdminModeratorRequiredMixin, ListView):
+    model = Doctor
+    template_name = 'news/services/doctor_list.html'
+    context_object_name = 'doctors'
+
+class DoctorCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = Doctor
+    form_class = DoctorForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-doctor-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Doctor'
+        ctx['back_url'] = reverse_lazy('service-doctor-list')
+        return ctx
+
+class DoctorUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = Doctor
+    form_class = DoctorForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-doctor-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Doctor'
+        ctx['back_url'] = reverse_lazy('service-doctor-list')
+        return ctx
+
+class DoctorDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = Doctor
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-doctor-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Doctor'
+        ctx['back_url'] = reverse_lazy('service-doctor-list')
+        return ctx
+
+
+# Job
+class JobListView(AdminModeratorRequiredMixin, ListView):
+    model = Job
+    template_name = 'news/services/job_list.html'
+    context_object_name = 'jobs'
+
+class JobCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = Job
+    form_class = JobForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-job-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Job Circular'
+        ctx['back_url'] = reverse_lazy('service-job-list')
+        return ctx
+
+class JobUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = Job
+    form_class = JobForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-job-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Job Circular'
+        ctx['back_url'] = reverse_lazy('service-job-list')
+        return ctx
+
+class JobDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = Job
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-job-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Job Circular'
+        ctx['back_url'] = reverse_lazy('service-job-list')
+        return ctx
+
+
+# Emergency Contact
+class EmergencyContactListView(AdminModeratorRequiredMixin, ListView):
+    model = EmergencyContact
+    template_name = 'news/services/emergency_list.html'
+    context_object_name = 'contacts'
+
+class EmergencyContactCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = EmergencyContact
+    form_class = EmergencyContactForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-emergency-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Emergency Contact'
+        ctx['back_url'] = reverse_lazy('service-emergency-list')
+        return ctx
+
+class EmergencyContactUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = EmergencyContact
+    form_class = EmergencyContactForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-emergency-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Emergency Contact'
+        ctx['back_url'] = reverse_lazy('service-emergency-list')
+        return ctx
+
+class EmergencyContactDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = EmergencyContact
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-emergency-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Emergency Contact'
+        ctx['back_url'] = reverse_lazy('service-emergency-list')
+        return ctx
+
+
+# Bus Schedule
+class BusScheduleListView(AdminModeratorRequiredMixin, ListView):
+    model = BusSchedule
+    template_name = 'news/services/bus_list.html'
+    context_object_name = 'buses'
+
+class BusScheduleCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = BusSchedule
+    form_class = BusScheduleForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-bus-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Bus Schedule'
+        ctx['back_url'] = reverse_lazy('service-bus-list')
+        return ctx
+
+class BusScheduleUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = BusSchedule
+    form_class = BusScheduleForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-bus-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Bus Schedule'
+        ctx['back_url'] = reverse_lazy('service-bus-list')
+        return ctx
+
+class BusScheduleDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = BusSchedule
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-bus-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Bus Schedule'
+        ctx['back_url'] = reverse_lazy('service-bus-list')
+        return ctx
+
+
+# Tourist Spot
+class TouristSpotListView(AdminModeratorRequiredMixin, ListView):
+    model = TouristSpot
+    template_name = 'news/services/tourist_list.html'
+    context_object_name = 'spots'
+
+class TouristSpotCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = TouristSpot
+    form_class = TouristSpotForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-tourist-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Tourist Spot'
+        ctx['back_url'] = reverse_lazy('service-tourist-list')
+        return ctx
+
+class TouristSpotUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = TouristSpot
+    form_class = TouristSpotForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-tourist-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Tourist Spot'
+        ctx['back_url'] = reverse_lazy('service-tourist-list')
+        return ctx
+
+class TouristSpotDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = TouristSpot
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-tourist-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Tourist Spot'
+        ctx['back_url'] = reverse_lazy('service-tourist-list')
+        return ctx
+
+
+# Education
+class EducationListView(AdminModeratorRequiredMixin, ListView):
+    model = EducationInstitution
+    template_name = 'news/services/education_list.html'
+    context_object_name = 'institutions'
+
+class EducationCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = EducationInstitution
+    form_class = EducationForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-education-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Education'
+        ctx['back_url'] = reverse_lazy('service-education-list')
+        return ctx
+
+class EducationUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = EducationInstitution
+    form_class = EducationForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-education-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Education'
+        ctx['back_url'] = reverse_lazy('service-education-list')
+        return ctx
+
+class EducationDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = EducationInstitution
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-education-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Education'
+        ctx['back_url'] = reverse_lazy('service-education-list')
+        return ctx
+
+
+# Govt Services
+class GovtServiceListView(AdminModeratorRequiredMixin, ListView):
+    model = GovernmentService
+    template_name = 'news/services/govt_list.html'
+    context_object_name = 'services'
+
+class GovtServiceCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = GovernmentService
+    form_class = GovernmentServiceForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-govt-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Govt Service'
+        ctx['back_url'] = reverse_lazy('service-govt-list')
+        return ctx
+
+class GovtServiceUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = GovernmentService
+    form_class = GovernmentServiceForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-govt-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Govt Service'
+        ctx['back_url'] = reverse_lazy('service-govt-list')
+        return ctx
+
+class GovtServiceDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = GovernmentService
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-govt-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Govt Service'
+        ctx['back_url'] = reverse_lazy('service-govt-list')
+        return ctx
+
+
+# Expert Services
+class ExpertServiceListView(AdminModeratorRequiredMixin, ListView):
+    model = ProfessionalService
+    template_name = 'news/services/expert_list.html'
+    context_object_name = 'experts'
+
+class ExpertServiceCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = ProfessionalService
+    form_class = ProfessionalServiceForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-expert-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Expert Service'
+        ctx['back_url'] = reverse_lazy('service-expert-list')
+        return ctx
+
+class ExpertServiceUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = ProfessionalService
+    form_class = ProfessionalServiceForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-expert-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Expert Service'
+        ctx['back_url'] = reverse_lazy('service-expert-list')
+        return ctx
+
+class ExpertServiceDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = ProfessionalService
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-expert-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Expert Service'
+        ctx['back_url'] = reverse_lazy('service-expert-list')
+        return ctx
+
+
+# Complaints
+class ComplaintListView(AdminModeratorRequiredMixin, ListView):
+    model = Complaint
+    template_name = 'news/services/complaint_list.html'
+    context_object_name = 'complaints'
+
+class ComplaintUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = Complaint
+    form_class = ComplaintForm
+    template_name = 'news/services/service_form.html'
+    success_url = reverse_lazy('service-complaint-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Complaint'
+        ctx['back_url'] = reverse_lazy('service-complaint-list')
+        return ctx
+
+class ComplaintDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = Complaint
+    template_name = 'news/services/service_confirm_delete.html'
+    success_url = reverse_lazy('service-complaint-list')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['service_title'] = 'Complaint'
+        ctx['back_url'] = reverse_lazy('service-complaint-list')
+        return ctx
+# Hospital
+class HospitalListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+    model = Hospital
+    template_name = 'news/service_list.html'
+    context_object_name = 'items'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "হাসপাতাল তালিকা"
+        context['add_url'] = 'service-hospital-create'
+        context['edit_url'] = 'service-hospital-update'
+        context['delete_url'] = 'service-hospital-delete'
+        context['fields'] = ['name', 'phone', 'is_verified']
+        return context
+
+class HospitalCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+    model = Hospital
+    form_class = HospitalForm
+    template_name = 'news/service_form.html'
+    success_url = reverse_lazy('service-hospital-list')
+
+class HospitalUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+    model = Hospital
+    form_class = HospitalForm
+    template_name = 'news/service_form.html'
+    success_url = reverse_lazy('service-hospital-list')
+
+class HospitalDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+    model = Hospital
+    success_url = reverse_lazy('service-hospital-list')

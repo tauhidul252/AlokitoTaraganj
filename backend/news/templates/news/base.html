@@ -65,6 +65,40 @@
             <a href="{% url 'dashboard-user-list' %}" class="flex items-center px-4 py-3.5 {% if 'users' in request.path %}bg-blue-600 text-white shadow-lg shadow-blue-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold">
                 <i data-lucide="users" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i> {{ t.users }}
             </a>
+
+            <!-- Services Section -->
+            <div class="px-4 mt-8 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">App Services</div>
+
+            <a href="{% url 'service-blood-list' %}" class="flex items-center px-4 py-3 {% if 'blood' in request.path %}bg-red-600 text-white shadow-lg shadow-red-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="droplets" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Blood Donors
+            </a>
+            <a href="{% url 'service-doctor-list' %}" class="flex items-center px-4 py-3 {% if 'doctors' in request.path %}bg-cyan-600 text-white shadow-lg shadow-cyan-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="stethoscope" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Doctors
+            </a>
+            <a href="{% url 'service-job-list' %}" class="flex items-center px-4 py-3 {% if 'jobs' in request.path %}bg-blue-600 text-white shadow-lg shadow-blue-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="briefcase" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Job Circulars
+            </a>
+            <a href="{% url 'service-emergency-list' %}" class="flex items-center px-4 py-3 {% if 'emergency' in request.path %}bg-orange-600 text-white shadow-lg shadow-orange-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="phone-call" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Emergency
+            </a>
+            <a href="{% url 'service-bus-list' %}" class="flex items-center px-4 py-3 {% if 'bus' in request.path %}bg-teal-600 text-white shadow-lg shadow-teal-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="bus" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Bus Schedule
+            </a>
+            <a href="{% url 'service-tourist-list' %}" class="flex items-center px-4 py-3 {% if 'tourist' in request.path %}bg-pink-600 text-white shadow-lg shadow-pink-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="map-pin" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Tourist Spots
+            </a>
+            <a href="{% url 'service-education-list' %}" class="flex items-center px-4 py-3 {% if 'education' in request.path %}bg-orange-600 text-white shadow-lg shadow-orange-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="graduation-cap" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Education
+            </a>
+            <a href="{% url 'service-govt-list' %}" class="flex items-center px-4 py-3 {% if 'govt' in request.path %}bg-indigo-600 text-white shadow-lg shadow-indigo-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="landmark" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Govt Services
+            </a>
+            <a href="{% url 'service-expert-list' %}" class="flex items-center px-4 py-3 {% if 'expert' in request.path %}bg-amber-600 text-white shadow-lg shadow-amber-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="hammer" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Expert Services
+            </a>
+            <a href="{% url 'service-complaint-list' %}" class="flex items-center px-4 py-3 {% if 'complaints' in request.path %}bg-red-600 text-white shadow-lg shadow-red-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="alert-circle" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Complaints
+            </a>
             {% endif %}
         </div>
 

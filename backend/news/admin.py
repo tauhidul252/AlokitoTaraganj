@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import NewsPost, Category, ReporterProfile
+from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
+    Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
+    EducationInstitution, GovernmentService, ProfessionalService, 
+    Complaint, HomeService)
+
+@admin.register(BloodDonor)
+class BloodDonorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'blood_group', 'location', 'is_available')
+
+@admin.register(HomeService)
+class HomeServiceAdmin(admin.ModelAdmin):
+    list_display = ('title', 'icon', 'route_type', 'target', 'order', 'is_active')
+    list_editable = ('order', 'is_active')
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

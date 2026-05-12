@@ -1,0 +1,52 @@
+{% extends 'news/base.html' %}
+{% block header_title %}Expert Services{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Professional Experts</h1>
+        <a href="{% url 'service-expert-create' %}" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center">
+            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Expert
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Expert Name</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Phone</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for item in experts %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 font-semibold text-gray-900">{{ item.name }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-lg">{{ item.category }}</span>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ item.phone }}</td>
+                    <td class="px-6 py-4">
+                        {% if item.is_available %}
+                        <span class="text-green-600 flex items-center text-xs font-bold"><i data-lucide="check-circle" class="w-3 h-3 mr-1"></i> Available</span>
+                        {% else %}
+                        <span class="text-gray-400 flex items-center text-xs font-bold"><i data-lucide="x-circle" class="w-3 h-3 mr-1"></i> Unavailable</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{% url 'service-expert-update' item.pk %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Edit</a>
+                        <a href="{% url 'service-expert-delete' item.pk %}" class="text-red-600 hover:text-red-800 font-medium text-sm">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic">No experts registered yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

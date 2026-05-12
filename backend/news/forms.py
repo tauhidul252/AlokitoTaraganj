@@ -1,5 +1,7 @@
 from django import forms
-from .models import NewsPost, Category, ReporterProfile
+from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
+    Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
+    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital)
 from django.contrib.auth.models import User, Group
 
 class CategoryForm(forms.ModelForm):
@@ -224,3 +226,168 @@ class ProfileForm(forms.ModelForm):
                 profile.avatar = self.cleaned_data['avatar']
             profile.save()
         return user
+
+
+# ─── Service Forms ──────────────────────────────────────────────────────────
+
+INPUT_CLASS = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all'
+SELECT_CLASS = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white'
+TEXTAREA_CLASS = 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none'
+FILE_CLASS = 'w-full px-4 py-3 rounded-xl border border-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
+
+
+class BloodDonorForm(forms.ModelForm):
+    class Meta:
+        model = BloodDonor
+        fields = ['name', 'blood_group', 'phone', 'location', 'is_available']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Rahim Uddin'}),
+            'blood_group': forms.Select(attrs={'class': SELECT_CLASS}),
+            'phone': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': '01XXXXXXXXX'}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Sadar, Taraganj'}),
+            'is_available': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class DoctorForm(forms.ModelForm):
+    class Meta:
+        model = Doctor
+        fields = ['name', 'specialty', 'degree', 'location', 'phone', 'is_available']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'Dr. Abdul Malek'}),
+            'specialty': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Cardiologist'}),
+            'degree': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. MBBS, FCPS'}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Sadar Hospital'}),
+            'phone': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': '01XXXXXXXXX (optional)'}),
+            'is_available': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class JobForm(forms.ModelForm):
+    class Meta:
+        model = Job
+        fields = ['title', 'company', 'job_type', 'description', 'location', 'deadline', 'apply_link', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Sales Executive'}),
+            'company': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Local Distributor Ltd.'}),
+            'job_type': forms.Select(attrs={'class': SELECT_CLASS}),
+            'description': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 4, 'placeholder': 'Job description...'}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Sadar Road'}),
+            'deadline': forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'}),
+            'apply_link': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'https://...'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class EmergencyContactForm(forms.ModelForm):
+    class Meta:
+        model = EmergencyContact
+        fields = ['title', 'number', 'subtitle', 'icon', 'color_hex', 'order', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Police Control Room'}),
+            'number': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 999'}),
+            'subtitle': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 24/7 Service'}),
+            'icon': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'lucide icon name e.g. phone, shield'}),
+            'color_hex': forms.TextInput(attrs={'class': INPUT_CLASS, 'type': 'color'}),
+            'order': forms.NumberInput(attrs={'class': INPUT_CLASS}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class BusScheduleForm(forms.ModelForm):
+    class Meta:
+        model = BusSchedule
+        fields = ['route_name', 'departure_time', 'bus_type', 'fare', 'is_active']
+        widgets = {
+            'route_name': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Dhaka to Taraganj'}),
+            'departure_time': forms.TimeInput(attrs={'class': INPUT_CLASS, 'type': 'time'}),
+            'bus_type': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. AC / Non-AC'}),
+            'fare': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': '500'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields:
+            if not isinstance(self.fields[field].widget, (forms.CheckboxInput, forms.RadioSelect)):
+                self.fields[field].widget.attrs.update({'class': INPUT_CLASS})
+
+class TouristSpotForm(forms.ModelForm):
+    class Meta:
+        model = TouristSpot
+        fields = ['title', 'description', 'image_url', 'image', 'location', 'map_link', 'order', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Lalbagh Fort'}),
+            'description': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 4, 'placeholder': 'Description...'}),
+            'image_url': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'https://... (image URL)'}),
+            'image': forms.FileInput(attrs={'class': FILE_CLASS}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. Old Dhaka'}),
+            'map_link': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'https://maps.google.com/...'}),
+            'order': forms.NumberInput(attrs={'class': INPUT_CLASS}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class EducationForm(forms.ModelForm):
+    class Meta:
+        model = EducationInstitution
+        fields = ['name', 'institution_type', 'location', 'phone', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'institution_type': forms.Select(attrs={'class': INPUT_CLASS}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'phone': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class GovernmentServiceForm(forms.ModelForm):
+    class Meta:
+        model = GovernmentService
+        fields = ['title', 'description', 'url', 'icon', 'is_active']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'description': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 3}),
+            'url': forms.URLInput(attrs={'class': INPUT_CLASS}),
+            'icon': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class ProfessionalServiceForm(forms.ModelForm):
+    class Meta:
+        model = ProfessionalService
+        fields = ['category', 'name', 'phone', 'location', 'is_available']
+        widgets = {
+            'category': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'name': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'phone': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'location': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'is_available': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+
+class ComplaintForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['complaint_type', 'description', 'is_resolved']
+        widgets = {
+            'complaint_type': forms.Select(attrs={'class': INPUT_CLASS}),
+            'description': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 4}),
+            'is_resolved': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+class HospitalForm(forms.ModelForm):
+    class Meta:
+        model = Hospital
+        fields = ['name', 'address', 'specialized_services', 'phone', 'image', 'is_verified', 'is_active', 'order']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'হাসপাতালের নাম'}),
+            'address': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 3, 'placeholder': 'ঠিকানা'}),
+            'specialized_services': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. ICU, NICU'}),
+            'phone': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'ফোন নম্বর'}),
+            'image': forms.FileInput(attrs={'class': FILE_CLASS}),
+            'is_verified': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'order': forms.NumberInput(attrs={'class': INPUT_CLASS}),
+        }

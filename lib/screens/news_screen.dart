@@ -68,7 +68,7 @@ class _NewsScreenState extends State<NewsScreen> {
 
   Future<void> _fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/v1/categories/'));
+      final response = await http.get(Uri.parse('http://192.168.0.4:8000/api/v1/categories/'));
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         setState(() {
@@ -79,7 +79,7 @@ class _NewsScreenState extends State<NewsScreen> {
             _categories.add({
               'id': cat['id'],
               'name': cat['name'],
-              'bn_name': cat['name'], // Assuming Bengali name is stored in 'name' in DB based on previous edits
+              'bn_name': cat['name'],
             });
           }
         });
@@ -98,14 +98,14 @@ class _NewsScreenState extends State<NewsScreen> {
     try {
       final categoryId = _categories[_selectedCategoryIndex]['id'];
       String url = categoryId == 0 
-          ? 'http://127.0.0.1:8000/api/v1/news/' 
-          : 'http://127.0.0.1:8000/api/v1/news/?category=$categoryId';
+          ? 'http://192.168.0.4:8000/api/v1/news/' 
+          : 'http://192.168.0.4:8000/api/v1/news/?category=$categoryId';
       
       if (_isTodayFilter) {
         url += url.contains('?') ? '&today=true' : '?today=true';
       }
           
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         setState(() {
           _newsList = json.decode(utf8.decode(response.bodyBytes));
@@ -120,7 +120,7 @@ class _NewsScreenState extends State<NewsScreen> {
       }
     } catch (e) {
       setState(() {
-        _error = 'Connection error. Make sure Django server is running.';
+        _error = 'Connection error. Make sure Django server is running at 10.0.2.2:8000';
         _isLoading = false;
       });
     }
@@ -389,7 +389,6 @@ class _NewsScreenState extends State<NewsScreen> {
                                   ),
                                 ),
                               ],
-                            ),
                             ),
                           ],
                         ),

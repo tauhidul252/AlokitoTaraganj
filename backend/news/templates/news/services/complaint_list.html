@@ -1,0 +1,58 @@
+{% extends 'news/base.html' %}
+{% block header_title %}Public Complaints{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Complaints Overview</h1>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table class="w-full text-left">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Complainant</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Message</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for item in complaints %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 text-xs text-gray-500">{{ item.created_at|date:"d M Y, h:i A" }}</td>
+                    <td class="px-6 py-4">
+                        <p class="font-semibold text-gray-900">
+                            {% if item.is_anonymous %}Anonymous{% else %}{{ item.name }}{% endif %}
+                        </p>
+                        <p class="text-[10px] text-gray-400">{{ item.phone }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 bg-red-50 text-red-700 text-[10px] font-bold rounded-full uppercase">{{ item.complaint_type }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-sm text-gray-600 line-clamp-1 max-w-xs">{{ item.description }}</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if item.is_resolved %}
+                        <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase">Resolved</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full uppercase">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{% url 'service-complaint-update' item.pk %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Review</a>
+                        <a href="{% url 'service-complaint-delete' item.pk %}" class="text-red-600 hover:text-red-800 font-medium text-sm">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-10 text-center text-gray-500 italic">No complaints filed yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

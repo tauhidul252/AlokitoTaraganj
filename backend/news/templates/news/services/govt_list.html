@@ -1,0 +1,42 @@
+{% extends 'news/base.html' %}
+{% block header_title %}Government Services{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">E-Services</h1>
+        <a href="{% url 'service-govt-create' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center">
+            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Add Service
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in services %}
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                    <i data-lucide="{{ item.icon }}" class="w-6 h-6"></i>
+                </div>
+                <div class="flex space-x-2">
+                    <a href="{% url 'service-govt-update' item.pk %}" class="p-2 text-gray-400 hover:text-blue-600 transition-colors"><i data-lucide="edit-2" class="w-4 h-4"></i></a>
+                    <a href="{% url 'service-govt-delete' item.pk %}" class="p-2 text-gray-400 hover:text-red-600 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></a>
+                </div>
+            </div>
+            <h3 class="font-bold text-gray-900 text-lg mb-2">{{ item.title }}</h3>
+            <p class="text-sm text-gray-500 line-clamp-2 mb-4">{{ item.description }}</p>
+            <div class="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+                <a href="{{ item.url }}" target="_blank" class="text-xs font-bold text-indigo-600 hover:underline">Visit Portal</a>
+                {% if item.is_active %}
+                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                {% else %}
+                <span class="w-2 h-2 bg-gray-300 rounded-full"></span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full p-12 text-center bg-white rounded-2xl border border-dashed border-gray-300">
+            <p class="text-gray-400 italic">No government services added yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

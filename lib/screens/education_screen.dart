@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/api_service.dart';
 
-class EducationScreen extends StatelessWidget {
+class EducationScreen extends StatefulWidget {
   const EducationScreen({super.key});
+
+  @override
+  State<EducationScreen> createState() => _EducationScreenState();
+}
+
+class _EducationScreenState extends State<EducationScreen> {
+  List<Map<String, dynamic>> _institutions = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    final data = await ApiService.fetchEducation();
+    setState(() {
+      _institutions = data;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,44 +45,41 @@ class EducationScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.black87),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          _buildInstitutionTile(
-            'Dhaka University',
-            'Public University',
-            Icons.school,
-            Colors.blue,
-          ),
-          _buildInstitutionTile(
-            'Dhaka City College',
-            'College',
-            Icons.school_outlined,
-            Colors.orange,
-          ),
-          _buildInstitutionTile(
-            'Viqarunnisa Noon School',
-            'School',
-            Icons.backpack,
-            Colors.green,
-          ),
-          _buildInstitutionTile(
-            'Notre Dame College',
-            'College',
-            Icons.school_outlined,
-            Colors.blue,
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: Colors.brown,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: Colors.brown))
+            : _institutions.isEmpty
+                ? _buildEmpty()
+                : ListView.builder(
+                    itemCount: _institutions.length,
+                    padding: const EdgeInsets.all(20),
+                    itemBuilder: (context, index) {
+                      final item = _institutions[index];
+                      return _buildInstitutionTile(
+                        item['name'] ?? '',
+                        item['institution_type'] ?? '',
+                        Icons.school,
+                        _getColorForType(item['institution_type']),
+                      );
+                    },
+                  ),
       ),
     );
   }
 
-  Widget _buildInstitutionTile(
-    String name,
-    String type,
-    IconData icon,
-    Color color,
-  ) {
+  Color _getColorForType(String? type) {
+    switch (type) {
+      case 'University': return Colors.blue;
+      case 'College': return Colors.orange;
+      case 'High School': return Colors.green;
+      case 'Primary': return Colors.teal;
+      default: return Colors.brown;
+    }
+  }
+
+  Widget _buildInstitutionTile(String name, String type, IconData icon, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
@@ -66,21 +87,18 @@ class EducationScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.05),
+            color: Colors.grey.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 10,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(15),
           ),
           child: Icon(icon, color: color),
@@ -109,9 +127,23 @@ class EducationScreen extends StatelessWidget {
             color: Colors.grey[400],
           ),
         ),
-        onTap: () {
-          // Open details
-        },
+        onTap: () {},
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.school_outlined, size: 64, color: Colors.grey[300]),
+          const SizedBox(height: 16),
+          Text(
+            'No educational institutions found',
+            style: GoogleFonts.outfit(color: Colors.grey[500], fontSize: 16),
+          ),
+        ],
       ),
     );
   }
