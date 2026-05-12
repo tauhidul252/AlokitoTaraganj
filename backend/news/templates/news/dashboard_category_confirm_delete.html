@@ -1,0 +1,27 @@
+{% extends "news/base.html" %}
+{% block header_title %}Delete Category{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto py-12">
+    <div class="glass-panel rounded-[2.5rem] p-10 shadow-xl border border-gray-100 text-center bg-white">
+        <div class="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
+            <i data-lucide="trash-2" class="w-10 h-10"></i>
+        </div>
+        
+        <h3 class="text-2xl font-black text-gray-900 mb-4 tracking-tight">Confirm Deletion</h3>
+        <p class="text-gray-500 font-medium mb-8 leading-relaxed">
+            Are you sure you want to delete the category <strong>"{{ object.name }}"</strong>? 
+            <br><span class="text-xs text-red-400 mt-2 block">Note: This will not delete the news posts in this category, but they will be marked as uncategorized.</span>
+        </p>
+
+        <form method="post" class="flex flex-col gap-3">
+            {% csrf_token %}
+            <button type="submit" class="w-full py-4 bg-red-600 text-white rounded-2xl font-black shadow-lg shadow-red-200 hover:bg-red-700 hover:shadow-red-300 transform hover:-translate-y-1 transition-all text-xs uppercase tracking-widest">
+                Yes, Delete Category
+            </button>
+            <a href="{% url 'dashboard-category-list' %}" class="w-full py-4 bg-gray-50 text-gray-500 rounded-2xl font-bold hover:bg-gray-100 transition-colors text-xs uppercase tracking-widest">
+                No, Keep it
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

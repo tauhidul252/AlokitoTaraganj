@@ -1,59 +1,160 @@
 {% extends "news/base.html" %}
-{% block header_title %}{% if object %}{{ t.edit_user }}{% else %}{{ t.add_user }}{% endif %}{% endblock %}
+{% block header_title %}{% if edited_user %}{{ t.edit_user }}{% else %}{{ t.add_user }}{% endif %}{% endblock %}
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="mb-6 flex items-center">
-        <a href="{% url 'dashboard-user-list' %}" class="text-gray-400 hover:text-brand-600 mr-4 transition-colors p-2 bg-white rounded-full shadow-sm">
+        <a href="{% url 'dashboard-user-list' %}" class="text-gray-400 hover:text-blue-600 mr-4 transition-colors p-2 bg-white rounded-full shadow-sm">
             <i data-lucide="arrow-left" class="w-5 h-5"></i>
         </a>
         <div>
-            <h3 class="text-2xl font-bold text-gray-800">{% if object %}{{ t.edit_user }}{% else %}{{ t.add_user }}{% endif %}</h3>
+            <h3 class="text-2xl font-bold text-gray-800">{% if edited_user %}{{ t.edit_user }}{% else %}{{ t.add_user }}{% endif %}</h3>
             <p class="text-gray-500 text-sm mt-1">{{ t.fill_form_user }}</p>
         </div>
     </div>
 
-    <div class="glass-panel rounded-3xl shadow-sm border border-gray-200 overflow-hidden bg-white">
-        <form method="post" class="p-6 sm:p-10">
-            {% csrf_token %}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- ── Basic Info Card ─────────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-5">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-700 text-sm">{% if lang == 'bn' %}মূল তথ্য{% else %}Basic Information{% endif %}</h4>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
                 {% for field in form %}
-                    <div class="flex flex-col {% if field.name == 'groups' %}md:col-span-2 p-4 bg-gray-50 rounded-2xl border border-gray-100{% endif %}">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">
+                    {% if field.name == 'username' or field.name == 'first_name' or field.name == 'last_name' or field.name == 'email' or field.name == 'password' %}
+                    <div class="flex flex-col">
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">
                             {% if field.name == 'username' %}{{ t.username }}
                             {% elif field.name == 'first_name' %}{{ t.first_name }}
                             {% elif field.name == 'last_name' %}{{ t.last_name }}
                             {% elif field.name == 'email' %}{{ t.email }}
-                            {% elif field.name == 'password' %}{{ t.password }}
-                            {% elif field.name == 'groups' %}{{ t.roles }}
-                            {% else %}{{ field.label }}{% endif %}
-                            
-                            {% if field.name == 'password' and object %}
-                                <span class="text-[10px] font-normal text-amber-600 ml-2">({% if lang == 'bn' %}খালি রাখলে পাসওয়ার্ড পরিবর্তন হবে না{% else %}Leave blank to keep current password{% endif %})</span>
+                            {% elif field.name == 'password' %}{{ t.password }}{% endif %}
+                            {% if field.name == 'password' and edited_user %}
+                                <span class="text-[10px] font-normal text-amber-600 ml-1">({% if lang == 'bn' %}খালি রাখলে পরিবর্তন হবে না{% else %}leave blank to keep{% endif %})</span>
                             {% endif %}
                         </label>
-                        
                         {{ field }}
-                        
-                        {% if field.errors %}
-                            <p class="text-red-500 text-xs font-medium mt-1.5 flex items-center"><i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> {{ field.errors.0 }}</p>
-                        {% endif %}
-                        
-                        {% if field.help_text %}
-                            <p class="text-gray-400 text-[10px] mt-1">{{ field.help_text|safe }}</p>
-                        {% endif %}
+                        {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
                     </div>
+                    {% endif %}
                 {% endfor %}
             </div>
+        </div>
 
-            <div class="pt-8 mt-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
-                <a href="{% url 'dashboard-user-list' %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors text-center w-full sm:w-auto">{{ t.cancel }}</a>
-                <button type="submit" class="gradient-brand text-white px-8 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center justify-center w-full sm:w-auto">
-                    <i data-lucide="save" class="w-5 h-5 mr-2"></i>
-                    {% if object %}{{ t.update_post }}{% else %}{{ t.add_user }}{% endif %}
-                </button>
+        <!-- ── Role & Access Card ──────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-5">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <i data-lucide="shield" class="w-4 h-4 text-purple-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-700 text-sm">{% if lang == 'bn' %}ভূমিকা এবং অ্যাক্সেস{% else %}Role & Access{% endif %}</h4>
             </div>
-        </form>
-    </div>
+            <div class="p-6 space-y-4">
+                {% for field in form %}
+                    {% if field.name == 'role' %}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">{{ t.roles }}</label>
+                        {{ field }}
+                        {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <!-- Role descriptions -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    <div class="p-3 rounded-xl bg-purple-50 border border-purple-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-5 h-5 rounded bg-purple-500 flex items-center justify-center"><i data-lucide="crown" class="w-3 h-3 text-white"></i></div>
+                            <span class="text-xs font-bold text-purple-700">{% if lang == 'bn' %}অ্যাডমিন{% else %}Admin{% endif %}</span>
+                        </div>
+                        <p class="text-[10px] text-purple-600">{% if lang == 'bn' %}সম্পূর্ণ নিয়ন্ত্রণ{% else %}Full system control{% endif %}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-blue-50 border border-blue-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-5 h-5 rounded bg-blue-500 flex items-center justify-center"><i data-lucide="shield-check" class="w-3 h-3 text-white"></i></div>
+                            <span class="text-xs font-bold text-blue-700">{% if lang == 'bn' %}মডারেটর{% else %}Moderator{% endif %}</span>
+                        </div>
+                        <p class="text-[10px] text-blue-600">{% if lang == 'bn' %}নিউজ অনুমোদন করতে পারবেন{% else %}Can approve news{% endif %}</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-green-50 border border-green-100">
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="w-5 h-5 rounded bg-green-500 flex items-center justify-center"><i data-lucide="edit-3" class="w-3 h-3 text-white"></i></div>
+                            <span class="text-xs font-bold text-green-700">{% if lang == 'bn' %}প্রতিবেদক{% else %}Reporter{% endif %}</span>
+                        </div>
+                        <p class="text-[10px] text-green-600">{% if lang == 'bn' %}নিউজ লিখতে পারবেন{% else %}Can write news{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Verification Card ───────────────────────────────── -->
+        <div class="bg-white rounded-2xl shadow-sm border border-blue-200 overflow-hidden mb-5">
+            <div class="px-6 py-4 border-b border-blue-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center shadow-sm shadow-blue-200">
+                        <i data-lucide="badge-check" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <h4 class="font-bold text-blue-700 text-sm">{% if lang == 'bn' %}প্রতিবেদক ভেরিফিকেশন{% else %}Reporter Verification{% endif %}</h4>
+                </div>
+                {% if edited_user.reporter_profile.is_verified %}
+                <span class="px-2.5 py-1 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center gap-1">
+                    <i data-lucide="check" class="w-2.5 h-2.5"></i>
+                    {% if lang == 'bn' %}ভেরিফাইড{% else %}VERIFIED{% endif %}
+                </span>
+                {% else %}
+                <span class="px-2.5 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold rounded-full">
+                    {% if lang == 'bn' %}অভেরিফাইড{% else %}NOT VERIFIED{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Verified toggle -->
+                {% for field in form %}
+                    {% if field.name == 'is_verified' %}
+                    <div class="flex items-start gap-4 p-4 rounded-xl border {% if edited_user.reporter_profile.is_verified %}bg-blue-50 border-blue-200{% else %}bg-gray-50 border-gray-100{% endif %} transition-all">
+                        <div class="pt-0.5 flex-shrink-0">
+                            <div class="relative w-10 h-6">
+                                {{ field }}
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-800">{% if lang == 'bn' %}ভেরিফাইড প্রতিবেদক{% else %}Verified Reporter{% endif %}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">
+                                {% if lang == 'bn' %}সক্রিয় করলে এই প্রতিবেদকের নামের পাশে নীল ✓ ব্যাজ দেখাবে{% else %}When enabled, a blue ✓ badge will appear next to this reporter's name{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Organization field -->
+                {% for field in form %}
+                    {% if field.name == 'organization' %}
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5 inline mr-1 text-gray-400"></i>
+                            {{ t.organization|default:"News Organization" }}
+                        </label>
+                        {{ field }}
+                        <p class="text-xs text-gray-400 mt-1">{% if lang == 'bn' %}প্রতিবেদকের সংবাদ প্রতিষ্ঠানের নাম{% else %}The reporter's news organization name{% endif %}</p>
+                        {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- ── Actions ─────────────────────────────────────────── -->
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <a href="{% url 'dashboard-user-list' %}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors text-center">{{ t.cancel }}</a>
+            <button type="submit" class="gradient-brand text-white px-8 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center justify-center">
+                <i data-lucide="save" class="w-5 h-5 mr-2"></i>
+                {% if edited_user %}{{ t.update_post }}{% else %}{{ t.add_user }}{% endif %}
+            </button>
+        </div>
+    </form>
 </div>
 {% endblock %}

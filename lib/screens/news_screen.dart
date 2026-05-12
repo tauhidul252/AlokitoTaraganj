@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -17,29 +18,100 @@ class NewsScreen extends StatefulWidget {
 
 class _NewsScreenState extends State<NewsScreen> {
   List<dynamic> _newsList = [];
+  List<Map<String, dynamic>> _categories = [
+    {'id': 0, 'name': 'All', 'bn_name': 'সব'}
+  ];
   bool _isLoading = true;
   String _error = '';
   
-  final List<String> _categories = ['All', 'Politics', 'Sports', 'Education', 'Local'];
   int _selectedCategoryIndex = 0;
   int _currentCarouselIndex = 0;
+  bool _isTodayFilter = false;
+  
+  late PageController _pageController;
+  Timer? _carouselTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchNews();
+    _pageController = PageController(initialPage: 0);
+    _initializeData();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _carouselTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoPlay(int itemCount) {
+    _carouselTimer?.cancel();
+    if (itemCount <= 1) return;
+    
+    _carouselTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_pageController.hasClients) {
+        int nextPage = (_currentCarouselIndex + 1) % itemCount;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _initializeData() async {
+    await _fetchCategories();
+    await _fetchNews();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/v1/categories/'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          _categories = [
+            {'id': 0, 'name': 'All', 'bn_name': 'সব'}
+          ];
+          for (var cat in data) {
+            _categories.add({
+              'id': cat['id'],
+              'name': cat['name'],
+              'bn_name': cat['name'], // Assuming Bengali name is stored in 'name' in DB based on previous edits
+            });
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+    }
   }
 
   Future<void> _fetchNews() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+    
     try {
-      // API call to Django backend
-      final response = await http.get(Uri.parse('http://127.0.0.1:8000/api/v1/news/'));
+      final categoryId = _categories[_selectedCategoryIndex]['id'];
+      String url = categoryId == 0 
+          ? 'http://127.0.0.1:8000/api/v1/news/' 
+          : 'http://127.0.0.1:8000/api/v1/news/?category=$categoryId';
+      
+      if (_isTodayFilter) {
+        url += url.contains('?') ? '&today=true' : '?today=true';
+      }
+          
+      final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         setState(() {
-          // Decoding utf8 to properly show Bengali characters
           _newsList = json.decode(utf8.decode(response.bodyBytes));
           _isLoading = false;
         });
+        _startAutoPlay(_newsList.take(5).length);
       } else {
         setState(() {
           _error = 'Failed to load news';
@@ -120,9 +192,12 @@ class _NewsScreenState extends State<NewsScreen> {
                         final isSelected = _selectedCategoryIndex == index;
                         return GestureDetector(
                           onTap: () {
-                            setState(() {
-                              _selectedCategoryIndex = index;
-                            });
+                            if (_selectedCategoryIndex != index) {
+                              setState(() {
+                                _selectedCategoryIndex = index;
+                              });
+                              _fetchNews();
+                            }
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
@@ -138,7 +213,7 @@ class _NewsScreenState extends State<NewsScreen> {
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF1D4ED8).withValues(alpha: 0.3),
+                                        color: const Color(0xFF1D4ED8).withOpacity(0.3),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -147,7 +222,7 @@ class _NewsScreenState extends State<NewsScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                _categories[index],
+                                lang.t(_categories[index]['name'] ?? '', _categories[index]['bn_name'] ?? ''),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -173,14 +248,14 @@ class _NewsScreenState extends State<NewsScreen> {
                           style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
-                      ),
-                    )
+                    ),
+                  )
                   else if (_newsList.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Text(lang.t('No news found.', 'কোনো সংবাদ পাওয়া যায়নি।')),
-                      )
+                      ),
                     )
                   else ...[
                     // Breaking News Header
@@ -198,20 +273,6 @@ class _NewsScreenState extends State<NewsScreen> {
                               letterSpacing: -0.3,
                             ),
                           ),
-                          Row(
-                            children: [
-                              Text(
-                                lang.t('View all', 'সব দেখুন'),
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF1D4ED8),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(LucideIcons.arrowRight, size: 16, color: Color(0xFF1D4ED8)),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -221,6 +282,8 @@ class _NewsScreenState extends State<NewsScreen> {
                     SizedBox(
                       height: 200.0,
                       child: PageView.builder(
+                        controller: _pageController,
+                        physics: const BouncingScrollPhysics(),
                         onPageChanged: (index) {
                           setState(() {
                             _currentCarouselIndex = index;
@@ -231,9 +294,12 @@ class _NewsScreenState extends State<NewsScreen> {
                           final news = carouselItems[index];
                           return BreakingNewsCard(
                             title: (news['title'] ?? '').toString(),
-                            source: (news['source'] ?? 'Admin').toString(),
+                            category: (news['category_name'] ?? 'News').toString(),
+                            source: (news['author_name'] ?? news['source'] ?? 'Admin').toString(),
                             date: _formatDate((news['created_at'] ?? '').toString()),
                             imageUrl: (news['image'] ?? '').toString(),
+                            isVerified: news['is_verified'] ?? false,
+                            organizationName: news['author_organization'] ?? news['organization_name'],
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -268,48 +334,78 @@ class _NewsScreenState extends State<NewsScreen> {
                     
                     const SizedBox(height: 24),
                     
-                    // Recommendation Header
-                    if (recommendations.isNotEmpty) ...[
+                    // Recent Header with Filter
+                    if (recommendations.isNotEmpty || _isTodayFilter) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              lang.t('Recommendation', 'আপনার জন্য'),
-                              style: GoogleFonts.outfit(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1E293B),
-                                letterSpacing: -0.3,
-                              ),
-                            ),
                             Row(
                               children: [
                                 Text(
-                                  lang.t('View all', 'সব দেখুন'),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1D4ED8),
+                                  lang.t('Recent', 'সাম্প্রতিক'),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF1E293B),
+                                    letterSpacing: -0.3,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                const Icon(LucideIcons.arrowRight, size: 16, color: Color(0xFF1D4ED8)),
+                                const SizedBox(width: 12),
+                                // Today Filter Chip
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _isTodayFilter = !_isTodayFilter;
+                                    });
+                                    _fetchNews();
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: _isTodayFilter ? const Color(0xFF1D4ED8).withOpacity(0.1) : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: _isTodayFilter ? const Color(0xFF1D4ED8) : Colors.grey[300]!,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        if (_isTodayFilter) 
+                                          const Icon(Icons.check, size: 12, color: Color(0xFF1D4ED8)),
+                                        if (_isTodayFilter) const SizedBox(width: 4),
+                                        Text(
+                                          lang.t('Today', 'আজকের'),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: _isTodayFilter ? const Color(0xFF1D4ED8) : Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
+                            ),
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 12),
                       
-                      // Recommendation List
+                      // Recent List
                       ...recommendations.map((news) {
                         return NewsCard(
                           title: (news['title'] ?? '').toString(),
-                          source: (news['source'] ?? 'Admin').toString(),
+                          category: (news['category_name'] ?? 'News').toString(),
+                          source: (news['author_name'] ?? news['source'] ?? 'Admin').toString(),
                           date: _formatDate((news['created_at'] ?? '').toString()),
                           imageUrl: (news['image'] ?? '').toString(),
+                          isVerified: news['is_verified'] ?? false,
+                          organizationName: news['author_organization'] ?? news['organization_name'],
                           onTap: () {
                             Navigator.push(
                               context,
@@ -322,14 +418,13 @@ class _NewsScreenState extends State<NewsScreen> {
                       }),
                     ],
                   ],
-                    
                   const SizedBox(height: 80), // Bottom padding for navbar
                 ],
               ),
             ),
           ),
         );
-      }
+      },
     );
   }
 }

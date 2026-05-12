@@ -87,9 +87,9 @@ class NewsDetailScreen extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.4),
+                          Colors.black.withOpacity(0.4),
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.6),
+                          Colors.black.withOpacity(0.6),
                         ],
                         stops: const [0.0, 0.5, 1.0],
                       ),
@@ -119,11 +119,11 @@ class NewsDetailScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1D4ED8).withValues(alpha: 0.1),
+                          color: const Color(0xFF1D4ED8).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                         child: Text(
-                          'News',
+                          newsData['category_name']?.toString() ?? 'News',
                           style: GoogleFonts.inter(
                             fontSize: 12.0,
                             fontWeight: FontWeight.w600,
@@ -170,14 +170,31 @@ class NewsDetailScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            newsData['source']?.toString() ?? 'Admin',
-                            style: GoogleFonts.inter(
-                              fontSize: 15.0,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1E293B),
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                newsData['author_name']?.toString() ?? newsData['source']?.toString() ?? 'Admin',
+                                style: GoogleFonts.inter(
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                              if (newsData['is_verified'] == true) ...[
+                                const SizedBox(width: 4.0),
+                                const Icon(Icons.verified, size: 16.0, color: Colors.blue),
+                              ],
+                            ],
                           ),
+                          if ((newsData['author_organization'] ?? newsData['organization_name']) != null && (newsData['author_organization'] ?? newsData['organization_name']).toString().isNotEmpty)
+                            Text(
+                              (newsData['author_organization'] ?? newsData['organization_name']).toString(),
+                              style: GoogleFonts.inter(
+                                fontSize: 13.0,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF1D4ED8),
+                              ),
+                            ),
                           Text(
                             date,
                             style: GoogleFonts.inter(
@@ -242,9 +259,9 @@ class NewsDetailScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.25),
+          color: Colors.black.withOpacity(0.25),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.0),
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.0),
         ),
         child: Icon(icon, color: Colors.white, size: 20.0),
       ),

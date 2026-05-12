@@ -19,7 +19,6 @@
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.users }}</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.email }}</th>
                     <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.roles }}</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.status }}</th>
                     <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">{{ t.actions }}</th>
                 </tr>
             </thead>
@@ -28,12 +27,33 @@
                 <tr class="hover:bg-blue-50/50 transition-colors group">
                     <td class="px-6 py-4">
                         <div class="flex items-center">
-                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold mr-3">
+                            <div class="relative w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold mr-3 flex-shrink-0">
                                 {{ u.username|make_list|first|upper }}
+                                {% if u.reporter_profile.is_verified %}
+                                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
+                                    <i data-lucide="check" class="w-2 h-2 text-white stroke-[4]"></i>
+                                </div>
+                                {% endif %}
                             </div>
                             <div>
-                                <div class="text-sm font-bold text-gray-900">{{ u.username }}</div>
-                                <div class="text-xs text-gray-500">{{ u.get_full_name }}</div>
+                                <div class="flex items-center gap-1.5">
+                                    <div class="text-sm font-bold text-gray-900">{{ u.username }}</div>
+                                    {% if u.reporter_profile.is_verified %}
+                                    <div class="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded-full">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                                            <i data-lucide="check" class="w-2 h-2 text-white stroke-[4]"></i>
+                                        </div>
+                                        <span class="text-[9px] font-bold text-blue-600">{% if lang == 'bn' %}ভেরিফাইড{% else %}VERIFIED{% endif %}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ u.get_full_name|default:u.email }}
+                                    {% if u.reporter_profile.organization %}
+                                        <span class="mx-1 text-gray-300">|</span>
+                                        <span class="text-blue-600 font-medium">{{ u.reporter_profile.organization }}</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </td>
@@ -44,28 +64,22 @@
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-100 text-purple-700 border border-purple-200">{{ t.admin|upper }}</span>
                             {% endif %}
                             {% for group in u.groups.all %}
-                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 border border-blue-200 uppercase">{{ group.name }}</span>
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 border border-blue-200 uppercase">
+                                    {% if group.name == 'Moderator' %}{{ t.moderator }}{% else %}{{ t.reporter }}{% endif %}
+                                </span>
                             {% endfor %}
+                            {% if not u.groups.all and not u.is_superuser %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-gray-100 text-gray-500 border border-gray-200">—</span>
+                            {% endif %}
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        {% if u.is_active %}
-                            <span class="flex items-center text-xs font-bold text-green-600">
-                                <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> {% if lang == 'bn' %}সক্রিয়{% else %}Active{% endif %}
-                            </span>
-                        {% else %}
-                            <span class="flex items-center text-xs font-bold text-red-600">
-                                <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> {% if lang == 'bn' %}নিষ্ক্রিয়{% else %}Inactive{% endif %}
-                            </span>
-                        {% endif %}
-                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div class="flex items-center justify-end space-x-3">
-                            <a href="{% url 'dashboard-user-update' u.pk %}" class="text-brand-600 hover:text-brand-900 bg-brand-50 p-2 rounded-lg transition-colors" title="{{ t.edit }}">
+                        <div class="flex items-center justify-end space-x-2">
+                            <a href="{% url 'dashboard-user-update' u.pk %}" class="text-blue-600 hover:text-white hover:bg-blue-600 bg-blue-50 border border-blue-200 hover:border-blue-600 p-2 rounded-lg transition-all" title="{{ t.edit }}">
                                 <i data-lucide="user-cog" class="w-4 h-4"></i>
                             </a>
                             {% if u.pk != user.pk %}
-                            <a href="{% url 'dashboard-user-delete' u.pk %}" class="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-lg transition-colors" title="Delete">
+                            <a href="{% url 'dashboard-user-delete' u.pk %}" class="text-red-600 hover:text-white hover:bg-red-500 bg-red-50 border border-red-200 hover:border-red-500 p-2 rounded-lg transition-all" title="Delete">
                                 <i data-lucide="user-minus" class="w-4 h-4"></i>
                             </a>
                             {% endif %}

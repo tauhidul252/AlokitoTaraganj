@@ -37,7 +37,12 @@
                             {% endif %}
                             <div>
                                 <div class="text-sm font-bold text-gray-900 line-clamp-2">{{ news.title }}</div>
-                                <div class="text-xs text-gray-500 sm:hidden mt-1">{{ news.author|default:"Admin" }}</div>
+                                <div class="flex items-center mt-1 space-x-2">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md border border-gray-200 uppercase tracking-tighter">
+                                        {{ news.category.name|default:"Uncategorized" }}
+                                    </span>
+                                    <div class="text-xs text-gray-500 sm:hidden">{{ news.author|default:"Admin" }}</div>
+                                </div>
                             </div>
                         </div>
                     </td>

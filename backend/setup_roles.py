@@ -10,11 +10,11 @@ from django.contrib.contenttypes.models import ContentType
 from news.models import NewsPost
 
 def setup_roles():
-    print("Setting up User Roles: Moderator and News Collector...")
+    print("Setting up User Roles: Moderator and Reporter...")
     
     # Create Groups
     moderator_group, created = Group.objects.get_or_create(name='Moderator')
-    collector_group, created = Group.objects.get_or_create(name='News Collector')
+    collector_group, created = Group.objects.get_or_create(name='Reporter')
     
     # Get ContentType for NewsPost
     news_content_type = ContentType.objects.get_for_model(NewsPost)
@@ -28,7 +28,7 @@ def setup_roles():
     # Moderator permissions: Can add, change, delete, view
     moderator_group.permissions.add(add_news, change_news, delete_news, view_news)
     
-    # News Collector permissions: Can add, change, view (Logic in views filters out other's posts)
+    # Reporter permissions: Can add, change, view (Logic in views filters out other's posts)
     collector_group.permissions.add(add_news, change_news, view_news)
     
     print("Roles and permissions configured successfully!")

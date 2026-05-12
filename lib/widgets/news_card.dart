@@ -3,17 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 
 class NewsCard extends StatelessWidget {
   final String title;
+  final String category;
   final String source;
   final String date;
   final String imageUrl;
+  final bool isVerified;
+  final String? organizationName;
   final VoidCallback? onTap;
 
   const NewsCard({
     super.key,
     required this.title,
+    this.category = 'News',
     required this.source,
     required this.date,
     required this.imageUrl,
+    this.isVerified = false,
+    this.organizationName,
     this.onTap,
   });
 
@@ -40,7 +46,7 @@ class NewsCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Category (Top)
                   Text(
-                    'News',
+                    category,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -71,15 +77,33 @@ class NewsCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8.0),
                       Expanded(
-                        child: Text(
-                          '$source • $date',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[500],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                source,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[500],
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isVerified) ...[
+                              const SizedBox(width: 4.0),
+                              const Icon(Icons.verified, size: 12.0, color: Colors.blue),
+                            ],
+                            Text(
+                              ' • $date',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

@@ -4,8 +4,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, T
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from .models import NewsPost, NewsEditHistory
-from .forms import NewsPostForm, UserForm
+from .models import NewsPost, NewsEditHistory, Category, ReporterProfile
+from .forms import NewsPostForm, AdminUserForm, ProfileForm, CategoryForm
 from .translations_dashboard import TRANSLATIONS
 
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
@@ -29,14 +29,15 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         # User Stats (Only for superusers)
         if user.is_superuser:
             context['total_users'] = User.objects.count()
-            context['collectors'] = User.objects.filter(groups__name='News Collector').count()
+            context['reporters'] = User.objects.filter(groups__name='Reporter').count()
             context['moderators'] = User.objects.filter(groups__name='Moderator').count()
             
         return context
 
-class SuperUserRequiredMixin(UserPassesTestMixin):
+class AdminModeratorRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.is_superuser
+        user = self.request.user
+        return user.is_superuser or user.groups.filter(name='Moderator').exists()
     login_url = 'dashboard-login'
 
 class DashboardLoginView(LoginView):
@@ -181,34 +182,48 @@ class DashboardNewsDeleteView(LoginRequiredMixin, DeleteView):
         return qs.filter(author=user).exclude(status='approved')
 
 # User Management Views
-class DashboardUserListView(SuperUserRequiredMixin, ListView):
+class DashboardUserListView(AdminModeratorRequiredMixin, ListView):
     model = User
     template_name = 'news/dashboard_user_list.html'
     context_object_name = 'users'
 
-class DashboardUserCreateView(SuperUserRequiredMixin, CreateView):
+class DashboardUserCreateView(AdminModeratorRequiredMixin, CreateView):
     model = User
-    form_class = UserForm
+    form_class = AdminUserForm
     template_name = 'news/dashboard_user_form.html'
     success_url = reverse_lazy('dashboard-user-list')
+    context_object_name = 'edited_user'  # Prevent shadowing template's {{ user }} (logged-in admin)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         lang = self.request.session.get('django_language', 'bn')
         kwargs['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        kwargs['requesting_user'] = self.request.user
         return kwargs
 
-class DashboardUserUpdateView(SuperUserRequiredMixin, UpdateView):
+class DashboardUserUpdateView(AdminModeratorRequiredMixin, UpdateView):
     model = User
-    form_class = UserForm
+    form_class = AdminUserForm
     template_name = 'news/dashboard_user_form.html'
     success_url = reverse_lazy('dashboard-user-list')
+    context_object_name = 'edited_user'  # Prevent shadowing template's {{ user }} (logged-in admin)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         lang = self.request.session.get('django_language', 'bn')
         kwargs['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        kwargs['requesting_user'] = self.request.user
         return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # CRITICAL FIX: After saving any user, always re-anchor the session
+        # to the currently logged-in admin, not the user being edited.
+        # Without this, Django's session auth hash check can switch/invalidate
+        # the admin's session and log them in as the edited user.
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(self.request, self.request.user)
+        return response
 
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
@@ -216,18 +231,20 @@ from django.contrib import messages
 
 # ... (previous views)
 
-class DashboardUserDeleteView(SuperUserRequiredMixin, DeleteView):
+class DashboardUserDeleteView(AdminModeratorRequiredMixin, DeleteView):
     model = User
     template_name = 'news/dashboard_user_confirm_delete.html'
     success_url = reverse_lazy('dashboard-user-list')
+    context_object_name = 'edited_user'  # Prevent shadowing template's {{ user }} (logged-in admin)
 
 # Profile and Settings Views
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = User
-    form_class = UserForm # We can reuse UserForm or make a specific one
+    form_class = ProfileForm
     template_name = 'news/dashboard_profile.html'
     success_url = reverse_lazy('dashboard-home')
     login_url = 'dashboard-login'
+    context_object_name = 'profile_user'  # Prevent shadowing template's {{ user }} (logged-in admin)
 
     def get_object(self):
         return self.request.user
@@ -236,16 +253,16 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         kwargs = super().get_form_kwargs()
         lang = self.request.session.get('django_language', 'bn')
         kwargs['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        # Pass FILES so the avatar ImageField can process uploads
+        if self.request.method in ('POST', 'PUT'):
+            kwargs['files'] = self.request.FILES
         return kwargs
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        # Remove fields that shouldn't be edited by the user themselves in profile
-        if 'groups' in form.fields:
-            form.fields.pop('groups')
-        if 'password' in form.fields:
-            form.fields.pop('password')
-        return form
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        from django.contrib.auth import update_session_auth_hash
+        update_session_auth_hash(self.request, self.request.user)
+        return response
 
 class DashboardPasswordChangeView(LoginRequiredMixin, TemplateView):
     template_name = 'news/dashboard_password_change.html'
@@ -266,3 +283,69 @@ class DashboardPasswordChangeView(LoginRequiredMixin, TemplateView):
 def set_language(request, lang_code):
     request.session['django_language'] = lang_code
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+# Category Management Views
+class CategoryListView(AdminModeratorRequiredMixin, ListView):
+    model = Category
+    template_name = 'news/dashboard_category_list.html'
+    context_object_name = 'categories'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lang = self.request.session.get('django_language', 'bn')
+        context['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        return context
+
+class CategoryCreateView(AdminModeratorRequiredMixin, CreateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'news/dashboard_category_form.html'
+    success_url = reverse_lazy('dashboard-category-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lang = self.request.session.get('django_language', 'bn')
+        context['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        return context
+
+class CategoryUpdateView(AdminModeratorRequiredMixin, UpdateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = 'news/dashboard_category_form.html'
+    success_url = reverse_lazy('dashboard-category-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lang = self.request.session.get('django_language', 'bn')
+        context['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        return context
+
+class CategoryDeleteView(AdminModeratorRequiredMixin, DeleteView):
+    model = Category
+    template_name = 'news/dashboard_category_confirm_delete.html'
+    success_url = reverse_lazy('dashboard-category-list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lang = self.request.session.get('django_language', 'bn')
+        context['t'] = TRANSLATIONS.get(lang, TRANSLATIONS['bn'])
+        return context
+
+
+# ─── Reporter Verification Toggle ────────────────────────────────────────────
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+
+@login_required(login_url='dashboard-login')
+@require_POST
+def toggle_reporter_verify(request, pk):
+    """One-click toggle to verify/unverify a reporter. Admin & Moderator only."""
+    if not (request.user.is_superuser or request.user.groups.filter(name='Moderator').exists()):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+    
+    target_user = User.objects.get(pk=pk)
+    profile, _ = ReporterProfile.objects.get_or_create(user=target_user)
+    profile.is_verified = not profile.is_verified  # Toggle
+    profile.save()
+    return redirect('dashboard-user-list')

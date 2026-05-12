@@ -1,5 +1,16 @@
 from django.contrib import admin
-from .models import NewsPost
+from .models import NewsPost, Category, ReporterProfile
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+
+@admin.register(ReporterProfile)
+class ReporterProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'is_verified', 'organization')
+    list_filter = ('is_verified',)
+    search_fields = ('user__username', 'organization')
 
 @admin.register(NewsPost)
 class NewsPostAdmin(admin.ModelAdmin):
@@ -15,7 +26,7 @@ class NewsPostAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if not request.user.is_superuser and not request.user.groups.filter(name='Moderator').exists():
-            return ('status', 'is_published', 'author')
+            return ('status', 'is_published', 'author', 'organization_name')
         return ()
 
     def save_model(self, request, obj, form, change):

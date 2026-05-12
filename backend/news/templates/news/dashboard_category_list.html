@@ -1,0 +1,64 @@
+{% extends "news/base.html" %}
+{% block header_title %}Categories{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div>
+        <h3 class="text-2xl font-bold text-gray-800">News Categories</h3>
+        <p class="text-gray-500 text-sm mt-1">Manage categories for news classification.</p>
+    </div>
+    <a href="{% url 'dashboard-category-create' %}" class="gradient-brand text-white px-5 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center w-full sm:w-auto justify-center">
+        <i data-lucide="plus-circle" class="w-5 h-5 mr-2"></i> Add Category
+    </a>
+</div>
+
+<div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50/80">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Slug</th>
+                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Posts Count</th>
+                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for cat in categories %}
+                <tr class="hover:bg-blue-50/50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold mr-3">
+                                {{ cat.name|make_list|first|upper }}
+                            </div>
+                            <div class="text-sm font-bold text-gray-900">{{ cat.name }}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ cat.slug }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg border border-gray-200">
+                            {{ cat.news_posts.count }} posts
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-3">
+                            <a href="{% url 'dashboard-category-update' cat.pk %}" class="text-brand-600 hover:text-brand-900 bg-brand-50 p-2 rounded-lg transition-colors" title="Edit">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </a>
+                            <a href="{% url 'dashboard-category-delete' cat.pk %}" class="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-lg transition-colors" title="Delete">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-10 text-center text-gray-500 font-medium">
+                        No categories found. Click "Add Category" to create one.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

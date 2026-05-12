@@ -3,6 +3,7 @@ from . import views, views_dashboard
 
 urlpatterns = [
     # API URLs
+    path('api/v1/categories/', views.CategoryListAPIView.as_view(), name='category-list'),
     path('api/v1/news/', views.NewsPostListAPIView.as_view(), name='news-list'),
     path('api/v1/news/<int:pk>/', views.NewsPostDetailAPIView.as_view(), name='news-detail'),
     
@@ -24,6 +25,13 @@ urlpatterns = [
     path('users/create/', views_dashboard.DashboardUserCreateView.as_view(), name='dashboard-user-create'),
     path('users/update/<int:pk>/', views_dashboard.DashboardUserUpdateView.as_view(), name='dashboard-user-update'),
     path('users/delete/<int:pk>/', views_dashboard.DashboardUserDeleteView.as_view(), name='dashboard-user-delete'),
+    path('users/toggle-verify/<int:pk>/', views_dashboard.toggle_reporter_verify, name='dashboard-toggle-verify'),
+
+    # Dashboard Category URLs
+    path('categories/', views_dashboard.CategoryListView.as_view(), name='dashboard-category-list'),
+    path('categories/create/', views_dashboard.CategoryCreateView.as_view(), name='dashboard-category-create'),
+    path('categories/update/<int:pk>/', views_dashboard.CategoryUpdateView.as_view(), name='dashboard-category-update'),
+    path('categories/delete/<int:pk>/', views_dashboard.CategoryDeleteView.as_view(), name='dashboard-category-delete'),
 
     # Profile & Settings
     path('profile/', views_dashboard.ProfileUpdateView.as_view(), name='dashboard-profile'),

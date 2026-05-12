@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'dart:ui';
 import 'screens/home_screen.dart';
 import 'screens/emergency_screen.dart';
 import 'screens/directory_screen.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
               scrolledUnderElevation: 0,
             ),
           ),
+          scrollBehavior: AppScrollBehavior(),
           home: const MainLayout(),
         );
       },
@@ -198,4 +200,13 @@ class _MainLayoutState extends State<MainLayout> {
       ),
     );
   }
+}
+
+class AppScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
 }

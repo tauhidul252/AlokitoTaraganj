@@ -1,6 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Category(models.Model):
+    name = models.CharField(max_length=100, verbose_name="ক্যাটাগরি নাম")
+    slug = models.SlugField(max_length=120, unique=True, verbose_name="স্লাগ")
+
+    class Meta:
+        verbose_name = "ক্যাটাগরি"
+        verbose_name_plural = "ক্যাটাগরি সমূহ"
+
+    def __str__(self):
+        return self.name
+
+class ReporterProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reporter_profile')
+    is_verified = models.BooleanField(default=False, verbose_name="ভেরিফাইড?")
+    organization = models.CharField(max_length=150, blank=True, null=True, verbose_name="সংবাদ প্রতিষ্ঠান")
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="প্রোফাইল ছবি")
+    bio = models.TextField(blank=True, null=True, verbose_name="পরিচিতি")
+
+    def __str__(self):
+        return f"{self.user.username} - {'Verified' if self.is_verified else 'Not Verified'}"
+
+    class Meta:
+        verbose_name = "রিপোর্টার প্রোফাইল"
+        verbose_name_plural = "রিপোর্টার প্রোফাইল সমূহ"
+
 class NewsPost(models.Model):
     STATUS_CHOICES = (
         ('pending', 'অপেক্ষমান (Pending)'),
@@ -9,12 +34,14 @@ class NewsPost(models.Model):
     )
 
     title = models.CharField(max_length=200, verbose_name="শিরোনাম")
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='news_posts', verbose_name="ক্যাটাগরি")
     content = models.TextField(verbose_name="বিস্তারিত খবর")
     image = models.ImageField(upload_to='news_images/', null=True, blank=True, verbose_name="খবরের ছবি")
     
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='authored_news', verbose_name="প্রতিবেদক/রিপোর্টার")
     approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_news', verbose_name="অনুমোদনকারী")
     source = models.CharField(max_length=100, default="নিজস্ব প্রতিবেদক", verbose_name="খবরের উৎস")
+    organization_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="সংবাদ প্রতিষ্ঠানের নাম")
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="স্ট্যাটাস")
     is_published = models.BooleanField(default=False, verbose_name="প্রকাশিত?")
