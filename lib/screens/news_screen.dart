@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -10,6 +11,7 @@ import '../main.dart';
 import 'news_detail_screen.dart';
 import '../utils/api_service.dart';
 import '../utils/ad_helper.dart';
+import '../widgets/ad_banner.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
@@ -33,13 +35,40 @@ class _NewsScreenState extends State<NewsScreen> {
   late PageController _pageController;
   Timer? _carouselTimer;
   late TextEditingController _searchController;
+  List<int> _adPositions = [];
 
   @override
   void initState() {
     super.initState();
+    _adPositions = [];
     _searchController = TextEditingController();
     _pageController = PageController(initialPage: 0);
     _initializeData();
+  }
+
+  void _generateAdPositions(int count) {
+    if (count < 4) {
+      setState(() => _adPositions = []);
+      return;
+    }
+    
+    final random = Random();
+    final Set<int> positions = {};
+    
+    // Calculate how many ads to show (roughly 1 ad per 4-5 items)
+    int adCount = (count / 4).floor();
+    if (adCount < 1) adCount = 1;
+    if (adCount > 3) adCount = 3; // Limit to max 3 ads in news feed
+
+    while (positions.length < adCount) {
+      // Don't put ads in the first 2 slots
+      int pos = 2 + random.nextInt(count - 2);
+      positions.add(pos);
+    }
+    
+    setState(() {
+      _adPositions = positions.toList()..sort();
+    });
   }
 
   @override
@@ -114,6 +143,7 @@ class _NewsScreenState extends State<NewsScreen> {
           _newsList = news;
           _isLoading = false;
         });
+        _generateAdPositions(_newsList.length);
         _startAutoPlay(_newsList.take(5).length);
       }
     } catch (e) {
@@ -131,6 +161,46 @@ class _NewsScreenState extends State<NewsScreen> {
     } catch (e) {
       return isoString;
     }
+  }
+
+  List<Widget> _buildNewsWithAds(List<dynamic> newsItems) {
+    List<Widget> widgets = [];
+    int adCount = 0;
+
+    for (int i = 0; i < newsItems.length; i++) {
+      final news = newsItems[i];
+      widgets.add(NewsCard(
+        title: (news['title'] ?? '').toString(),
+        category: (news['category_name'] ?? 'News').toString(),
+        source: (news['author_name'] ?? news['source'] ?? 'Admin').toString(),
+        date: _formatDate((news['created_at'] ?? '').toString()),
+        imageUrl: (news['image'] ?? '').toString(),
+        isVerified: news['is_verified'] ?? false,
+        organizationName: news['author_organization'] ?? news['organization_name'],
+        onTap: () {
+          AdHelper.showInterstitialAd(() {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NewsDetailScreen(newsData: news),
+              ),
+            );
+          });
+        },
+      ));
+
+      // Add AdBanner at random positions
+      if (_adPositions.isNotEmpty && _adPositions.contains(i)) {
+        // Alternate between Local and AdMob
+        final mode = (adCount % 2 == 0) ? AdMode.local : AdMode.admob;
+        widgets.add(Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: AdBanner(mode: mode),
+        ));
+        adCount++;
+      }
+    }
+    return widgets;
   }
 
   @override
@@ -458,35 +528,7 @@ class _NewsScreenState extends State<NewsScreen> {
                       const SizedBox(height: 12),
 
                       // Recent List
-                      ...recommendations.map((news) {
-                        return NewsCard(
-                          title: (news['title'] ?? '').toString(),
-                          category: (news['category_name'] ?? 'News')
-                              .toString(),
-                          source:
-                              (news['author_name'] ?? news['source'] ?? 'Admin')
-                                  .toString(),
-                          date: _formatDate(
-                            (news['created_at'] ?? '').toString(),
-                          ),
-                          imageUrl: (news['image'] ?? '').toString(),
-                          isVerified: news['is_verified'] ?? false,
-                          organizationName:
-                              news['author_organization'] ??
-                              news['organization_name'],
-                          onTap: () {
-                            AdHelper.showInterstitialAd(() {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      NewsDetailScreen(newsData: news),
-                                ),
-                              );
-                            });
-                          },
-                        );
-                      }),
+                      ..._buildNewsWithAds(recommendations),
                     ],
                   ],
                   const SizedBox(height: 80), // Bottom padding for navbar
