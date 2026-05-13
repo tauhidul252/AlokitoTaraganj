@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../utils/api_service.dart';
 import '../utils/translations.dart';
+import '../main.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   final dynamic newsData;
@@ -20,7 +22,7 @@ class NewsDetailScreen extends StatelessWidget {
 
   String _getFullImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
-    return path.startsWith('http') ? path : 'http://127.0.0.1:8000$path';
+    return path.startsWith('http') ? path : '${ApiService.baseUrl}$path';
   }
 
   @override
@@ -44,7 +46,7 @@ class NewsDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: _buildGlassButton(
                 icon: Icons.arrow_back,
-                onTap: () => Navigator.pop(context),
+                onTap: () => MainLayout.goBack(context),
               ),
             ),
             actions: [

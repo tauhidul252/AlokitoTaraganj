@@ -20,6 +20,9 @@ urlpatterns = [
     path('api/v1/home-services/', views.HomeServiceList.as_view(), name='api-home-services'),
     path('api/v1/hospitals/', views.HospitalListCreateAPIView.as_view(), name='api-hospitals'),
     path('api/v1/ads/', views.AdvertisementListAPIView.as_view(), name='api-ads'),
+    path('api/v1/ads/<int:pk>/view/', views.AdvertisementTrackViewAPI.as_view(), name='api-ads-track-view'),
+    path('api/v1/ads/<int:pk>/click/', views.AdvertisementTrackClickAPI.as_view(), name='api-ads-track-click'),
+    path('api/v1/settings/', views.AppConfigurationAPIView.as_view(), name='api-settings'),
     
     # Dashboard URLs
     path('login/', views_dashboard.DashboardLoginView.as_view(), name='dashboard-login'),
@@ -121,4 +124,6 @@ urlpatterns = [
     path('services/ads/add/', views_dashboard.AdvertisementCreateView.as_view(), name='service-ad-create'),
     path('services/ads/<int:pk>/edit/', views_dashboard.AdvertisementUpdateView.as_view(), name='service-ad-update'),
     path('services/ads/<int:pk>/delete/', views_dashboard.AdvertisementDeleteView.as_view(), name='service-ad-delete'),
+    # App Settings
+    path('settings/', views_dashboard.AppConfigurationUpdateView.as_view(), name='app-settings'),
 ]

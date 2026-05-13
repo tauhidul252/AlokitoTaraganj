@@ -1,7 +1,7 @@
 from django import forms
 from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
     Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
-    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital, Advertisement)
+    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital, Advertisement, HomeService, AppConfiguration)
 from django.contrib.auth.models import User, Group
 
 class CategoryForm(forms.ModelForm):
@@ -345,12 +345,13 @@ class EducationForm(forms.ModelForm):
 class GovernmentServiceForm(forms.ModelForm):
     class Meta:
         model = GovernmentService
-        fields = ['title', 'description', 'url', 'icon', 'is_active']
+        fields = ['title', 'description', 'url', 'icon', 'logo', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'description': forms.Textarea(attrs={'class': TEXTAREA_CLASS, 'rows': 3}),
             'url': forms.URLInput(attrs={'class': INPUT_CLASS}),
             'icon': forms.TextInput(attrs={'class': INPUT_CLASS}),
+            'logo': forms.FileInput(attrs={'class': FILE_CLASS}),
             'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
         }
 
@@ -395,10 +396,24 @@ class HospitalForm(forms.ModelForm):
 class AdvertisementForm(forms.ModelForm):
     class Meta:
         model = Advertisement
-        fields = ['title', 'image', 'link', 'is_active']
+        fields = ['title', 'image', 'link', 'start_date', 'end_date', 'target_views', 'priority', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'বিজ্ঞাপনের শিরোনাম'}),
             'image': forms.FileInput(attrs={'class': FILE_CLASS}),
             'link': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'লিংক (ঐচ্ছিক)'}),
+            'start_date': forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'}),
+            'target_views': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': '০ দিলে আনলিমিটেড'}),
+            'priority': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': '১ থেকে ১০'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+
+class AppConfigurationForm(forms.ModelForm):
+    class Meta:
+        model = AppConfiguration
+        fields = ['is_admob_enabled', 'ad_carousel_interval', 'admob_frequency']
+        widgets = {
+            'is_admob_enabled': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'ad_carousel_interval': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 5'}),
+            'admob_frequency': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 3'}),
         }

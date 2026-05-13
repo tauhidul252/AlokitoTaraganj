@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/api_service.dart';
+import '../main.dart';
 
 class ComplaintBoxScreen extends StatefulWidget {
   const ComplaintBoxScreen({super.key});
@@ -18,7 +19,15 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
   bool _isAnonymous = false;
   bool _submitting = false;
 
-  final List<String> _types = ['Road', 'Water', 'Electricity', 'Corruption', 'Health', 'Education', 'Other'];
+  final List<String> _types = [
+    'Road',
+    'Water',
+    'Electricity',
+    'Corruption',
+    'Health',
+    'Education',
+    'Other',
+  ];
 
   @override
   void dispose() {
@@ -55,11 +64,17 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
           _complaintType = 'Road';
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Complaint Submitted Successfully!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Complaint Submitted Successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to submit complaint. Try again.'), backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text('Failed to submit complaint. Try again.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -69,18 +84,9 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          'Complaint Box',
-          style: GoogleFonts.outfit(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(25),
@@ -98,7 +104,11 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.shield, color: Colors.deepOrange, size: 30),
+                    const Icon(
+                      Icons.shield,
+                      color: Colors.deepOrange,
+                      size: 30,
+                    ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: Text(
@@ -115,7 +125,10 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
               const SizedBox(height: 30),
               Text(
                 'Submit your complaint',
-                style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold),
+                style: GoogleFonts.outfit(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 5),
               Text(
@@ -135,11 +148,15 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                 label: 'Phone Number',
                 icon: Icons.phone,
                 keyboardType: TextInputType.phone,
-                validator: (v) => v!.isEmpty ? 'Please enter phone number' : null,
+                validator: (v) =>
+                    v!.isEmpty ? 'Please enter phone number' : null,
               ),
               const SizedBox(height: 15),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
@@ -152,14 +169,16 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                   ],
                 ),
                 child: DropdownButtonFormField<String>(
-                  value: _complaintType,
+                  initialValue: _complaintType,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     prefixIcon: const Icon(Icons.category, color: Colors.grey),
                     labelText: 'Complaint Type',
                     labelStyle: GoogleFonts.inter(color: Colors.grey[500]),
                   ),
-                  items: _types.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  items: _types
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
                   onChanged: (v) => setState(() => _complaintType = v!),
                 ),
               ),
@@ -168,7 +187,8 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                 controller: _descController,
                 label: 'Description',
                 maxLines: 5,
-                validator: (v) => v!.isEmpty ? 'Please enter description' : null,
+                validator: (v) =>
+                    v!.isEmpty ? 'Please enter description' : null,
               ),
               const SizedBox(height: 15),
               Row(
@@ -178,7 +198,10 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                     onChanged: (v) => setState(() => _isAnonymous = v!),
                     activeColor: Colors.deepOrange,
                   ),
-                  Text('Keep me anonymous', style: GoogleFonts.inter(fontWeight: FontWeight.w500)),
+                  Text(
+                    'Keep me anonymous',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+                  ),
                 ],
               ),
               const SizedBox(height: 30),
@@ -189,13 +212,21 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrange,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                     elevation: 5,
                   ),
                   onPressed: _submitting ? null : _submit,
                   child: _submitting
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text('Submit Complaint', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold)),
+                      : Text(
+                          'Submit Complaint',
+                          style: GoogleFonts.outfit(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -234,7 +265,10 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
           labelText: label,
           labelStyle: GoogleFonts.inter(color: Colors.grey[500]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 15,
+          ),
           prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
           alignLabelWithHint: true,
         ),

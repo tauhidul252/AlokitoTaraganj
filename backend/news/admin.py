@@ -61,3 +61,8 @@ class NewsPostAdmin(admin.ModelAdmin):
             if obj.author != request.user:
                 return False
         return super().has_change_permission(request, obj)
+
+@admin.register(GovernmentService)
+class GovernmentServiceAdmin(admin.ModelAdmin):
+    list_display = ('title', 'url', 'icon', 'is_active')
+    list_editable = ('is_active',)

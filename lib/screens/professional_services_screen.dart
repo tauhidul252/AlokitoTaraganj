@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../main.dart';
 
 class ProfessionalServicesScreen extends StatefulWidget {
   final String? initialCategory;
@@ -45,18 +46,9 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          _selectedCategory ?? 'Expert Services',
-          style: GoogleFonts.outfit(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: Column(
         children: [

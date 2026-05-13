@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/api_service.dart';
+import '../main.dart';
 
 class TransportScreen extends StatefulWidget {
   const TransportScreen({super.key});
@@ -32,22 +33,9 @@ class _TransportScreenState extends State<TransportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          'Transport Schedule',
-          style: GoogleFonts.outfit(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: _buildScheduleList(),
     );

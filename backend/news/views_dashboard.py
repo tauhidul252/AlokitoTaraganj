@@ -6,10 +6,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from .models import (NewsPost, NewsEditHistory, Category, ReporterProfile, 
     BloodDonor, Doctor, Job, EmergencyContact, BusSchedule, TouristSpot,
-    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital, Advertisement)
+    EducationInstitution, GovernmentService, ProfessionalService, Complaint, Hospital, Advertisement, AppConfiguration)
 from .forms import (NewsPostForm, AdminUserForm, ProfileForm, CategoryForm, 
     BloodDonorForm, DoctorForm, JobForm, EmergencyContactForm, BusScheduleForm, TouristSpotForm,
-    EducationForm, GovernmentServiceForm, ProfessionalServiceForm, ComplaintForm, HospitalForm, AdvertisementForm)
+    EducationForm, GovernmentServiceForm, ProfessionalServiceForm, ComplaintForm, HospitalForm, AdvertisementForm, AppConfigurationForm)
 from .translations_dashboard import TRANSLATIONS
 
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
@@ -40,15 +40,17 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             
         return context
 
-class AdminModeratorRequiredMixin(UserPassesTestMixin):
+class AdminOnlyRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        user = self.request.user
-        return user.is_superuser or user.groups.filter(name='Moderator').exists()
+        return self.request.user.is_superuser
     login_url = 'dashboard-login'
 
 class DashboardLoginView(LoginView):
     template_name = 'news/dashboard_login.html'
     redirect_authenticated_user = True
+    
+    def get_success_url(self):
+        return reverse_lazy('dashboard-home')
 
 
 class DashboardLogoutView(LogoutView):
@@ -118,6 +120,7 @@ class DashboardNewsUpdateView(LoginRequiredMixin, UpdateView):
 class DashboardNewsDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = NewsPost
     success_url = reverse_lazy('dashboard-news-list')
+    template_name = 'news/service_confirm_delete.html'
     
     def test_func(self):
         user = self.request.user
@@ -126,7 +129,7 @@ class DashboardNewsDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
 
 
 # User Management
-class DashboardUserListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class DashboardUserListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = User
     template_name = 'news/dashboard_user_list.html'
     context_object_name = 'users'
@@ -134,13 +137,13 @@ class DashboardUserListView(LoginRequiredMixin, AdminModeratorRequiredMixin, Lis
     def get_queryset(self):
         return User.objects.all().order_by('-date_joined')
 
-class DashboardUserCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class DashboardUserCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = User
     form_class = AdminUserForm
     template_name = 'news/dashboard_user_form.html'
     success_url = reverse_lazy('dashboard-user-list')
 
-class DashboardUserUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class DashboardUserUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = User
     form_class = AdminUserForm
     template_name = 'news/dashboard_user_form.html'
@@ -149,6 +152,7 @@ class DashboardUserUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, U
 class DashboardUserDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = User
     success_url = reverse_lazy('dashboard-user-list')
+    template_name = 'news/service_confirm_delete.html'
 
     def test_func(self):
         return self.request.user.is_superuser
@@ -164,29 +168,30 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
 # Category Views
-class CategoryListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class CategoryListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Category
     template_name = 'news/dashboard_category_list.html'
     context_object_name = 'categories'
 
-class CategoryCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class CategoryCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Category
     form_class = CategoryForm
     template_name = 'news/dashboard_category_form.html'
     success_url = reverse_lazy('dashboard-category-list')
 
-class CategoryUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class CategoryUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = 'news/dashboard_category_form.html'
     success_url = reverse_lazy('dashboard-category-list')
 
-class CategoryDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class CategoryDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('dashboard-category-list')
+    template_name = 'news/service_confirm_delete.html'
 
 def toggle_reporter_verify(request, pk):
-    if not (request.user.is_superuser or request.user.groups.filter(name='Moderator').exists()):
+    if not request.user.is_superuser:
         return redirect('dashboard-login')
     
     user = User.objects.get(pk=pk)
@@ -198,7 +203,7 @@ def toggle_reporter_verify(request, pk):
 # ─── Service Management Views ──────────────────────────────────────────────────
 
 # Blood Donor
-class BloodDonorListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class BloodDonorListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = BloodDonor
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -212,24 +217,25 @@ class BloodDonorListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListVi
         context['fields'] = ['name', 'blood_group', 'phone', 'is_available']
         return context
 
-class BloodDonorCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class BloodDonorCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = BloodDonor
     form_class = BloodDonorForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-blood-list')
 
-class BloodDonorUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class BloodDonorUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = BloodDonor
     form_class = BloodDonorForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-blood-list')
 
-class BloodDonorDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class BloodDonorDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = BloodDonor
     success_url = reverse_lazy('service-blood-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Doctor
-class DoctorListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class DoctorListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Doctor
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -243,24 +249,25 @@ class DoctorListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
         context['fields'] = ['name', 'specialty', 'phone', 'is_available']
         return context
 
-class DoctorCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class DoctorCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Doctor
     form_class = DoctorForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-doctor-list')
 
-class DoctorUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class DoctorUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Doctor
     form_class = DoctorForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-doctor-list')
 
-class DoctorDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class DoctorDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Doctor
     success_url = reverse_lazy('service-doctor-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Job
-class JobListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class JobListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Job
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -274,24 +281,25 @@ class JobListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
         context['fields'] = ['title', 'company', 'deadline', 'is_active']
         return context
 
-class JobCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class JobCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Job
     form_class = JobForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-job-list')
 
-class JobUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class JobUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Job
     form_class = JobForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-job-list')
 
-class JobDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class JobDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Job
     success_url = reverse_lazy('service-job-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Emergency Contact
-class EmergencyContactListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class EmergencyContactListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = EmergencyContact
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -305,24 +313,25 @@ class EmergencyContactListView(LoginRequiredMixin, AdminModeratorRequiredMixin, 
         context['fields'] = ['title', 'number', 'category', 'is_active']
         return context
 
-class EmergencyContactCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class EmergencyContactCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = EmergencyContact
     form_class = EmergencyContactForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-emergency-list')
 
-class EmergencyContactUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class EmergencyContactUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = EmergencyContact
     form_class = EmergencyContactForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-emergency-list')
 
-class EmergencyContactDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class EmergencyContactDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = EmergencyContact
     success_url = reverse_lazy('service-emergency-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Bus Schedule
-class BusScheduleListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class BusScheduleListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = BusSchedule
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -336,24 +345,25 @@ class BusScheduleListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListV
         context['fields'] = ['route_name', 'departure_time', 'fare', 'is_active']
         return context
 
-class BusScheduleCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class BusScheduleCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = BusSchedule
     form_class = BusScheduleForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-bus-list')
 
-class BusScheduleUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class BusScheduleUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = BusSchedule
     form_class = BusScheduleForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-bus-list')
 
-class BusScheduleDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class BusScheduleDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = BusSchedule
     success_url = reverse_lazy('service-bus-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Tourist Spot
-class TouristSpotListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class TouristSpotListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = TouristSpot
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -367,24 +377,25 @@ class TouristSpotListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListV
         context['fields'] = ['title', 'location', 'is_active']
         return context
 
-class TouristSpotCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class TouristSpotCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = TouristSpot
     form_class = TouristSpotForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-tourist-list')
 
-class TouristSpotUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class TouristSpotUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = TouristSpot
     form_class = TouristSpotForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-tourist-list')
 
-class TouristSpotDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class TouristSpotDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = TouristSpot
     success_url = reverse_lazy('service-tourist-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Education
-class EducationListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class EducationListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = EducationInstitution
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -398,24 +409,25 @@ class EducationListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListVie
         context['fields'] = ['name', 'institution_type', 'location', 'is_active']
         return context
 
-class EducationCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class EducationCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = EducationInstitution
     form_class = EducationForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-education-list')
 
-class EducationUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class EducationUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = EducationInstitution
     form_class = EducationForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-education-list')
 
-class EducationDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class EducationDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = EducationInstitution
     success_url = reverse_lazy('service-education-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Government Services
-class GovtServiceListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class GovtServiceListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = GovernmentService
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -426,27 +438,28 @@ class GovtServiceListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListV
         context['add_url'] = 'service-govt-create'
         context['edit_url'] = 'service-govt-update'
         context['delete_url'] = 'service-govt-delete'
-        context['fields'] = ['title', 'url', 'is_active']
+        context['fields'] = ['title', 'url', 'logo', 'is_active']
         return context
 
-class GovtServiceCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class GovtServiceCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = GovernmentService
     form_class = GovernmentServiceForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-govt-list')
 
-class GovtServiceUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class GovtServiceUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = GovernmentService
     form_class = GovernmentServiceForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-govt-list')
 
-class GovtServiceDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class GovtServiceDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = GovernmentService
     success_url = reverse_lazy('service-govt-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Expert Services
-class ExpertServiceListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class ExpertServiceListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = ProfessionalService
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -460,24 +473,25 @@ class ExpertServiceListView(LoginRequiredMixin, AdminModeratorRequiredMixin, Lis
         context['fields'] = ['name', 'category', 'phone', 'is_available']
         return context
 
-class ExpertServiceCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class ExpertServiceCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = ProfessionalService
     form_class = ProfessionalServiceForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-expert-list')
 
-class ExpertServiceUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class ExpertServiceUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = ProfessionalService
     form_class = ProfessionalServiceForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-expert-list')
 
-class ExpertServiceDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class ExpertServiceDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = ProfessionalService
     success_url = reverse_lazy('service-expert-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Complaint Management
-class ComplaintListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class ComplaintListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Complaint
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -490,15 +504,16 @@ class ComplaintListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListVie
         context['fields'] = ['complaint_type', 'is_resolved', 'created_at']
         return context
 
-class ComplaintUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class ComplaintUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Complaint
     form_class = ComplaintForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-complaint-list')
 
-class ComplaintDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class ComplaintDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Complaint
     success_url = reverse_lazy('service-complaint-list')
+    template_name = 'news/service_confirm_delete.html'
 
 class DashboardPasswordChangeView(LoginRequiredMixin, TemplateView):
     template_name = 'news/dashboard_password_change.html'
@@ -507,15 +522,23 @@ def set_language(request, lang_code):
     request.session['django_language'] = lang_code
     return redirect(request.META.get('HTTP_REFERER', 'dashboard-home'))
 
-# Added HomeService update view for the dashboard
-class HomeServiceUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
-    # This view is for editing individual service icons/names on the home screen grid
-    pass # Needs actual implementation if requested
+class AppConfigurationUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
+    model = AppConfiguration
+    form_class = AppConfigurationForm
+    template_name = 'news/service_form.html'
+    success_url = reverse_lazy('app-settings')
 
-class HomeServiceDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
-    pass # Needs actual implementation if requested
+    def get_object(self, queryset=None):
+        obj, created = AppConfiguration.objects.get_or_create(id=1)
+        return obj
 
-class ComplaintUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['service_title'] = "অ্যাপ সেটিংস"
+        context['back_url'] = reverse_lazy('dashboard-home')
+        return context
+
+class ComplaintUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Complaint
     form_class = ComplaintForm
     template_name = 'news/service_form.html'
@@ -527,7 +550,7 @@ class ComplaintUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, Updat
         ctx['back_url'] = reverse_lazy('service-complaint-list')
         return ctx
 # Hospital
-class HospitalListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class HospitalListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Hospital
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -541,24 +564,25 @@ class HospitalListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView
         context['fields'] = ['name', 'phone', 'is_verified']
         return context
 
-class HospitalCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class HospitalCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Hospital
     form_class = HospitalForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-hospital-list')
 
-class HospitalUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class HospitalUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Hospital
     form_class = HospitalForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-hospital-list')
 
-class HospitalDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class HospitalDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Hospital
     success_url = reverse_lazy('service-hospital-list')
+    template_name = 'news/service_confirm_delete.html'
 
 # Advertisement
-class AdvertisementListView(LoginRequiredMixin, AdminModeratorRequiredMixin, ListView):
+class AdvertisementListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
     model = Advertisement
     template_name = 'news/service_list.html'
     context_object_name = 'items'
@@ -569,21 +593,22 @@ class AdvertisementListView(LoginRequiredMixin, AdminModeratorRequiredMixin, Lis
         context['add_url'] = 'service-ad-create'
         context['edit_url'] = 'service-ad-update'
         context['delete_url'] = 'service-ad-delete'
-        context['fields'] = ['title', 'is_active', 'created_at']
+        context['fields'] = ['title', 'is_active', 'views', 'target_views', 'clicks', 'priority']
         return context
 
-class AdvertisementCreateView(LoginRequiredMixin, AdminModeratorRequiredMixin, CreateView):
+class AdvertisementCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Advertisement
     form_class = AdvertisementForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-ad-list')
 
-class AdvertisementUpdateView(LoginRequiredMixin, AdminModeratorRequiredMixin, UpdateView):
+class AdvertisementUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Advertisement
     form_class = AdvertisementForm
     template_name = 'news/service_form.html'
     success_url = reverse_lazy('service-ad-list')
 
-class AdvertisementDeleteView(LoginRequiredMixin, AdminModeratorRequiredMixin, DeleteView):
+class AdvertisementDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Advertisement
     success_url = reverse_lazy('service-ad-list')
+    template_name = 'news/service_confirm_delete.html'

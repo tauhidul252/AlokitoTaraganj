@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (NewsPost, Category, BloodDonor, Doctor, Job, 
     EmergencyContact, BusSchedule, TouristSpot, EducationInstitution, 
-    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement)
+    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement, AppConfiguration)
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,7 +84,7 @@ class EducationSerializer(serializers.ModelSerializer):
 class GovernmentServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = GovernmentService
-        fields = ['id', 'title', 'description', 'url', 'icon', 'is_active']
+        fields = ['id', 'title', 'description', 'url', 'icon', 'logo', 'is_active']
 
 
 class ProfessionalServiceSerializer(serializers.ModelSerializer):
@@ -114,3 +114,8 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
         fields = '__all__'
+
+class AppConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppConfiguration
+        fields = ['is_admob_enabled', 'ad_carousel_interval', 'admob_frequency']

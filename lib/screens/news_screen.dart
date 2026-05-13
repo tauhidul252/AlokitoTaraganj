@@ -6,8 +6,10 @@ import 'package:http/http.dart' as http;
 import '../widgets/news_card.dart';
 import '../widgets/breaking_news_card.dart';
 import '../utils/translations.dart';
+import '../main.dart';
 import 'news_detail_screen.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import '../utils/api_service.dart';
+import '../utils/ad_helper.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
@@ -19,21 +21,23 @@ class NewsScreen extends StatefulWidget {
 class _NewsScreenState extends State<NewsScreen> {
   List<dynamic> _newsList = [];
   List<Map<String, dynamic>> _categories = [
-    {'id': 0, 'name': 'All', 'bn_name': 'সব'}
+    {'id': 0, 'name': 'All', 'bn_name': 'সব'},
   ];
   bool _isLoading = true;
   String _error = '';
-  
+
   int _selectedCategoryIndex = 0;
   int _currentCarouselIndex = 0;
   bool _isTodayFilter = false;
-  
+
   late PageController _pageController;
   Timer? _carouselTimer;
+  late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     _pageController = PageController(initialPage: 0);
     _initializeData();
   }
@@ -42,13 +46,14 @@ class _NewsScreenState extends State<NewsScreen> {
   void dispose() {
     _pageController.dispose();
     _carouselTimer?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
   void _startAutoPlay(int itemCount) {
     _carouselTimer?.cancel();
     if (itemCount <= 1) return;
-    
+
     _carouselTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (_pageController.hasClients) {
         int nextPage = (_currentCarouselIndex + 1) % itemCount;
@@ -68,12 +73,14 @@ class _NewsScreenState extends State<NewsScreen> {
 
   Future<void> _fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.0.4:8000/api/v1/categories/'));
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/api/v1/categories/'),
+      );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
         setState(() {
           _categories = [
-            {'id': 0, 'name': 'All', 'bn_name': 'সব'}
+            {'id': 0, 'name': 'All', 'bn_name': 'সব'},
           ];
           for (var cat in data) {
             _categories.add({
@@ -94,33 +101,24 @@ class _NewsScreenState extends State<NewsScreen> {
       _isLoading = true;
       _error = '';
     });
-    
+
     try {
       final categoryId = _categories[_selectedCategoryIndex]['id'];
-      String url = categoryId == 0 
-          ? 'http://192.168.0.4:8000/api/v1/news/' 
-          : 'http://192.168.0.4:8000/api/v1/news/?category=$categoryId';
-      
-      if (_isTodayFilter) {
-        url += url.contains('?') ? '&today=true' : '?today=true';
-      }
-          
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
-      if (response.statusCode == 200) {
+      final news = await ApiService.fetchNews(
+        categoryId: categoryId,
+        search: _searchController.text,
+      );
+
+      if (mounted) {
         setState(() {
-          _newsList = json.decode(utf8.decode(response.bodyBytes));
+          _newsList = news;
           _isLoading = false;
         });
         _startAutoPlay(_newsList.take(5).length);
-      } else {
-        setState(() {
-          _error = 'Failed to load news';
-          _isLoading = false;
-        });
       }
     } catch (e) {
       setState(() {
-        _error = 'Connection error. Make sure Django server is running at 10.0.2.2:8000';
+        _error = 'Connection error. Make sure Django server is running.';
         _isLoading = false;
       });
     }
@@ -138,48 +136,64 @@ class _NewsScreenState extends State<NewsScreen> {
   @override
   Widget build(BuildContext context) {
     final carouselItems = _newsList.take(5).toList();
-    final recommendations = _newsList.length > 5 ? _newsList.skip(5).toList() : [];
+    final recommendations = _newsList.length > 5
+        ? _newsList.skip(5).toList()
+        : [];
 
     return ListenableBuilder(
       listenable: lang,
       builder: (context, child) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF0F4FF),
-          body: RefreshIndicator(
-            onRefresh: _fetchNews,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          lang.t('News & Updates', 'সংবাদ ও আপডেট'),
-                          style: GoogleFonts.outfit(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1E293B),
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          lang.t('Recent events in and around Taraganj', 'তারাগঞ্জ এবং আশেপাশের সাম্প্রতিক ঘটনাবলী'),
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey[500],
-                          ),
+        return RefreshIndicator(
+          onRefresh: _fetchNews,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1D4ED8).withOpacity(0.06),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
+                    child: TextField(
+                      controller: _searchController,
+                      onSubmitted: (_) => _fetchNews(),
+                      decoration: InputDecoration(
+                        hintText: lang.t('Search news...', 'খবর খুঁজুন...'),
+                        hintStyle: GoogleFonts.inter(color: Colors.grey[400], fontSize: 14),
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF1D4ED8), size: 20),
+                        suffixIcon: _searchController.text.isNotEmpty 
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                _fetchNews();
+                              },
+                            )
+                          : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      onChanged: (val) {
+                        if (val.isEmpty) _fetchNews();
+                        setState(() {}); // Update to show/hide clear icon
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 20),
 
                   // Category List
                   SizedBox(
@@ -202,18 +216,27 @@ class _NewsScreenState extends State<NewsScreen> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF1D4ED8) : Colors.white,
+                              color: isSelected
+                                  ? const Color(0xFF1D4ED8)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: isSelected ? const Color(0xFF1D4ED8) : Colors.grey[300]!,
+                                color: isSelected
+                                    ? const Color(0xFF1D4ED8)
+                                    : Colors.grey[300]!,
                                 width: 1,
                               ),
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF1D4ED8).withOpacity(0.3),
+                                        color: const Color(
+                                          0xFF1D4ED8,
+                                        ).withOpacity(0.3),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -222,11 +245,18 @@ class _NewsScreenState extends State<NewsScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                lang.t(_categories[index]['name'] ?? '', _categories[index]['bn_name'] ?? ''),
+                                lang.t(
+                                  _categories[index]['name'] ?? '',
+                                  _categories[index]['bn_name'] ?? '',
+                                ),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                  color: isSelected ? Colors.white : Colors.grey[700],
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey[700],
                                 ),
                               ),
                             ),
@@ -236,7 +266,7 @@ class _NewsScreenState extends State<NewsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   if (_isLoading)
                     const Center(child: CircularProgressIndicator())
                   else if (_error.isNotEmpty)
@@ -244,17 +274,19 @@ class _NewsScreenState extends State<NewsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Text(
-                          _error, 
+                          _error,
                           style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
-                    ),
-                  )
+                      ),
+                    )
                   else if (_newsList.isEmpty)
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
-                        child: Text(lang.t('No news found.', 'কোনো সংবাদ পাওয়া যায়নি।')),
+                        child: Text(
+                          lang.t('No news found.', 'কোনো সংবাদ পাওয়া যায়নি।'),
+                        ),
                       ),
                     )
                   else ...[
@@ -277,7 +309,7 @@ class _NewsScreenState extends State<NewsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Breaking News Card Carousel
                     SizedBox(
                       height: 200.0,
@@ -294,26 +326,38 @@ class _NewsScreenState extends State<NewsScreen> {
                           final news = carouselItems[index];
                           return BreakingNewsCard(
                             title: (news['title'] ?? '').toString(),
-                            category: (news['category_name'] ?? 'News').toString(),
-                            source: (news['author_name'] ?? news['source'] ?? 'Admin').toString(),
-                            date: _formatDate((news['created_at'] ?? '').toString()),
+                            category: (news['category_name'] ?? 'News')
+                                .toString(),
+                            source:
+                                (news['author_name'] ??
+                                        news['source'] ??
+                                        'Admin')
+                                    .toString(),
+                            date: _formatDate(
+                              (news['created_at'] ?? '').toString(),
+                            ),
                             imageUrl: (news['image'] ?? '').toString(),
                             isVerified: news['is_verified'] ?? false,
-                            organizationName: news['author_organization'] ?? news['organization_name'],
+                            organizationName:
+                                news['author_organization'] ??
+                                news['organization_name'],
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => NewsDetailScreen(newsData: news),
-                                ),
-                              );
+                              AdHelper.showInterstitialAd(() {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        NewsDetailScreen(newsData: news),
+                                  ),
+                                );
+                              });
                             },
                           );
                         },
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Dot Indicator
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -325,15 +369,17 @@ class _NewsScreenState extends State<NewsScreen> {
                           height: 6.0,
                           width: _currentCarouselIndex == index ? 24.0 : 6.0,
                           decoration: BoxDecoration(
-                            color: _currentCarouselIndex == index ? const Color(0xFF1D4ED8) : Colors.grey[300],
+                            color: _currentCarouselIndex == index
+                                ? const Color(0xFF1D4ED8)
+                                : Colors.grey[300],
                             borderRadius: BorderRadius.circular(3.0),
                           ),
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Recent Header with Filter
                     if (recommendations.isNotEmpty || _isTodayFilter) ...[
                       Padding(
@@ -362,26 +408,42 @@ class _NewsScreenState extends State<NewsScreen> {
                                     _fetchNews();
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: _isTodayFilter ? const Color(0xFF1D4ED8).withOpacity(0.1) : Colors.transparent,
+                                      color: _isTodayFilter
+                                          ? const Color(
+                                              0xFF1D4ED8,
+                                            ).withOpacity(0.1)
+                                          : Colors.transparent,
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: _isTodayFilter ? const Color(0xFF1D4ED8) : Colors.grey[300]!,
+                                        color: _isTodayFilter
+                                            ? const Color(0xFF1D4ED8)
+                                            : Colors.grey[300]!,
                                         width: 1,
                                       ),
                                     ),
                                     child: Row(
                                       children: [
-                                        if (_isTodayFilter) 
-                                          const Icon(Icons.check, size: 12, color: Color(0xFF1D4ED8)),
-                                        if (_isTodayFilter) const SizedBox(width: 4),
+                                        if (_isTodayFilter)
+                                          const Icon(
+                                            Icons.check,
+                                            size: 12,
+                                            color: Color(0xFF1D4ED8),
+                                          ),
+                                        if (_isTodayFilter)
+                                          const SizedBox(width: 4),
                                         Text(
                                           lang.t('Today', 'আজকের'),
                                           style: GoogleFonts.inter(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w700,
-                                            color: _isTodayFilter ? const Color(0xFF1D4ED8) : Colors.grey[500],
+                                            color: _isTodayFilter
+                                                ? const Color(0xFF1D4ED8)
+                                                : Colors.grey[500],
                                           ),
                                         ),
                                       ],
@@ -394,24 +456,34 @@ class _NewsScreenState extends State<NewsScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Recent List
                       ...recommendations.map((news) {
                         return NewsCard(
                           title: (news['title'] ?? '').toString(),
-                          category: (news['category_name'] ?? 'News').toString(),
-                          source: (news['author_name'] ?? news['source'] ?? 'Admin').toString(),
-                          date: _formatDate((news['created_at'] ?? '').toString()),
+                          category: (news['category_name'] ?? 'News')
+                              .toString(),
+                          source:
+                              (news['author_name'] ?? news['source'] ?? 'Admin')
+                                  .toString(),
+                          date: _formatDate(
+                            (news['created_at'] ?? '').toString(),
+                          ),
                           imageUrl: (news['image'] ?? '').toString(),
                           isVerified: news['is_verified'] ?? false,
-                          organizationName: news['author_organization'] ?? news['organization_name'],
+                          organizationName:
+                              news['author_organization'] ??
+                              news['organization_name'],
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => NewsDetailScreen(newsData: news),
-                              ),
-                            );
+                            AdHelper.showInterstitialAd(() {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      NewsDetailScreen(newsData: news),
+                                ),
+                              );
+                            });
                           },
                         );
                       }),
@@ -421,9 +493,8 @@ class _NewsScreenState extends State<NewsScreen> {
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
   }
 }

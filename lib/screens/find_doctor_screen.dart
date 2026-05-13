@@ -66,13 +66,9 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text('Find a Doctor',
-            style: GoogleFonts.outfit(color: Colors.black87, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: RefreshIndicator(
         color: Colors.cyan,

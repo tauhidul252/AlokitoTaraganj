@@ -1,12 +1,13 @@
-from rest_framework import generics
+from rest_framework import generics, views as rf_views, status
+from rest_framework.response import Response
 from .models import (NewsPost, Category, BloodDonor, Doctor, Job, 
     EmergencyContact, BusSchedule, TouristSpot, EducationInstitution, 
-    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement)
+    GovernmentService, ProfessionalService, Complaint, HomeService, Hospital, Advertisement, AppConfiguration)
 from .serializers import (NewsPostSerializer, CategorySerializer,
     BloodDonorSerializer, DoctorSerializer, JobSerializer,
     EmergencyContactSerializer, BusScheduleSerializer, TouristSpotSerializer,
     EducationSerializer, GovernmentServiceSerializer, ProfessionalServiceSerializer,
-    ComplaintSerializer, HomeServiceSerializer, HospitalSerializer, AdvertisementSerializer)
+    ComplaintSerializer, HomeServiceSerializer, HospitalSerializer, AdvertisementSerializer, AppConfigurationSerializer)
 
 class CategoryListAPIView(generics.ListAPIView):
     queryset = Category.objects.all()
@@ -17,6 +18,12 @@ class NewsPostListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = NewsPost.objects.filter(is_published=True)
+        
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            from django.db.models import Q
+            queryset = queryset.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
+
         category_id = self.request.query_params.get('category')
         if category_id and category_id != '0': # '0' represents 'All'
             queryset = queryset.filter(category_id=category_id)
@@ -26,7 +33,7 @@ class NewsPostListAPIView(generics.ListAPIView):
             from django.utils import timezone
             queryset = queryset.filter(created_at__date=timezone.now().date())
             
-        return queryset
+        return queryset.order_by('-created_at')
 
 class NewsPostDetailAPIView(generics.RetrieveAPIView):
     queryset = NewsPost.objects.filter(is_published=True)
@@ -114,6 +121,60 @@ class HospitalListCreateAPIView(generics.ListCreateAPIView):
     queryset = Hospital.objects.filter(is_active=True)
     serializer_class = HospitalSerializer
 
+from django.db.models import F, FloatField, ExpressionWrapper, Case, When
+from django.utils import timezone
+
 class AdvertisementListAPIView(generics.ListAPIView):
-    queryset = Advertisement.objects.filter(is_active=True)
     serializer_class = AdvertisementSerializer
+
+    def get_queryset(self):
+        today = timezone.now().date()
+        qs = Advertisement.objects.filter(is_active=True)
+        
+        # Filter out expired ads or future ads
+        qs = qs.exclude(start_date__gt=today)
+        qs = qs.exclude(end_date__lt=today)
+        
+        # Filter out maxed impression ads (if target_views > 0)
+        qs = qs.exclude(target_views__gt=0, views__gte=F('target_views'))
+        
+        # Algorithmic Sort: Calculate CTR and sort by Priority > CTR > Date
+        qs = qs.annotate(
+            ctr_calc=ExpressionWrapper(
+                Case(
+                    When(views=0, then=0.0),
+                    default=(F('clicks') * 100.0) / F('views'),
+                    output_field=FloatField()
+                ),
+                output_field=FloatField()
+            )
+        ).order_by('-priority', '-ctr_calc', '-created_at')
+        
+        return qs
+
+class AppConfigurationAPIView(generics.RetrieveAPIView):
+    serializer_class = AppConfigurationSerializer
+
+    def get_object(self):
+        obj, created = AppConfiguration.objects.get_or_create(id=1)
+        return obj
+
+class AdvertisementTrackViewAPI(rf_views.APIView):
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            ad = Advertisement.objects.get(pk=pk)
+            ad.views += 1
+            ad.save(update_fields=['views'])
+            return Response({"status": "success", "views": ad.views})
+        except Advertisement.DoesNotExist:
+            return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class AdvertisementTrackClickAPI(rf_views.APIView):
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            ad = Advertisement.objects.get(pk=pk)
+            ad.clicks += 1
+            ad.save(update_fields=['clicks'])
+            return Response({"status": "success", "clicks": ad.clicks})
+        except Advertisement.DoesNotExist:
+            return Response({"status": "not found"}, status=status.HTTP_404_NOT_FOUND)

@@ -1,24 +1,47 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
   // Use your machine's local IP (found via ipconfig) so real devices can connect
-  static const String _base = 'http://192.168.0.4:8000'; 
-  
-  static Uri _url(String path) => Uri.parse('$_base/$path');
+  // Dynamic baseUrl detection
+  static String get baseUrl {
+    if (kIsWeb) return 'http://127.0.0.1:8000';
+    // Use the machine's local IP (found via ipconfig) so both emulators and real devices can connect
+    // Your current local IP: 192.168.0.4
+    return 'http://192.168.0.4:8000';
+  }
+
+  static Uri _url(String path) => Uri.parse('$baseUrl/$path');
 
   static Future<List<dynamic>> _getList(String path) async {
     try {
-      final res = await http.get(_url(path)).timeout(const Duration(seconds: 10));
+      final url = _url(path);
+      debugPrint('Fetching API: $url');
+      final res = await http.get(url).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         return jsonDecode(res.body) as List<dynamic>;
       } else {
-        print('API Error [$path]: Status ${res.statusCode}');
+        debugPrint('API Error [$path]: Status ${res.statusCode} - ${res.body}');
       }
     } catch (e) {
-      print('API Connection Error [$path]: $e');
+      debugPrint('API Connection Error [$path] at $baseUrl: $e');
     }
     return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchNews({int? categoryId, String? search}) async {
+    String path = 'api/v1/news/';
+    List<String> params = [];
+    if (categoryId != null && categoryId != 0) params.add('category=$categoryId');
+    if (search != null && search.isNotEmpty) params.add('search=${Uri.encodeComponent(search)}');
+    
+    if (params.isNotEmpty) {
+      path += '?${params.join('&')}';
+    }
+    
+    final data = await _getList(path);
+    return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
   static Future<List<Map<String, dynamic>>> fetchBloodDonors({String? group}) async {
@@ -43,7 +66,7 @@ class ApiService {
   }
 
   static Future<List<Map<String, dynamic>>> fetchEmergencyContacts({String? category}) async {
-    final path = category != null ? 'api/v1/emergency/?category=$category' : 'api/v1/emergency/';
+    final path = category != null ? 'api/v1/emergency/?category=${Uri.encodeComponent(category)}' : 'api/v1/emergency/';
     final data = await _getList(path);
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
@@ -87,6 +110,34 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> fetchAds() async {
     final data = await _getList('api/v1/ads/');
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  static Future<Map<String, dynamic>?> fetchSettings() async {
+    try {
+      final res = await http.get(_url('api/v1/settings/')).timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+    } catch (e) {
+      print('API Error fetchSettings: $e');
+    }
+    return null;
+  }
+
+  static Future<void> trackAdView(int adId) async {
+    try {
+      await http.post(_url('api/v1/ads/$adId/view/')).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      print('Failed to track ad view: $e');
+    }
+  }
+
+  static Future<void> trackAdClick(int adId) async {
+    try {
+      await http.post(_url('api/v1/ads/$adId/click/')).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      print('Failed to track ad click: $e');
+    }
   }
 
   static Future<bool> submitComplaint(Map<String, dynamic> data) async {

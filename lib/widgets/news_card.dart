@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/api_service.dart';
 
 class NewsCard extends StatelessWidget {
   final String title;
@@ -120,7 +121,7 @@ class NewsCard extends StatelessWidget {
   Widget _buildImage() {
     if (imageUrl.isNotEmpty) {
       return Image.network(
-        imageUrl.startsWith('http') ? imageUrl : 'http://127.0.0.1:8000$imageUrl',
+        imageUrl.startsWith('http') ? imageUrl : '${ApiService.baseUrl}$imageUrl',
         width: 100.0,
         height: 100.0,
         fit: BoxFit.cover,

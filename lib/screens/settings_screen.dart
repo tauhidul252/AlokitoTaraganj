@@ -5,6 +5,7 @@ import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 import 'about_screen.dart';
 import '../utils/translations.dart';
+import '../main.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -20,22 +21,9 @@ class SettingsScreen extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           backgroundColor: const Color(0xFFF5F7FA),
-          appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              lang.t('Settings', 'সেটিংস'),
-              style: GoogleFonts.outfit(
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            iconTheme: const IconThemeData(color: Colors.black87),
+          appBar: PreferredSize(
+            preferredSize: Size.zero,
+            child: Container(),
           ),
           body: ListView(
             padding: const EdgeInsets.all(20),

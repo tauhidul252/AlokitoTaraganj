@@ -243,6 +243,7 @@ class GovernmentService(models.Model):
     description = models.TextField(blank=True, null=True, default='')
     url = models.URLField(null=True, blank=True, default='')
     icon = models.CharField(max_length=50, default='globe')
+    logo = models.ImageField(upload_to='govt_services/', null=True, blank=True, verbose_name="লোগো/ছবি")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -298,9 +299,11 @@ class Complaint(models.Model):
 
 
 class HomeService(models.Model):
-    name = models.CharField(max_length=100, verbose_name="সেবার নাম", default='')
-    icon = models.CharField(max_length=50, default='wrench', verbose_name="আইকন")
-    target_screen = models.CharField(max_length=100, blank=True, verbose_name="টার্গেট স্ক্রিন")
+    title = models.CharField(max_length=100, verbose_name="সেবার নাম", default='')
+    icon = models.CharField(max_length=50, default='wrench', verbose_name="আইকন (Lucide)")
+    color_hex = models.CharField(max_length=10, default='#3b82f6', verbose_name="রঙ (Hex)")
+    route_type = models.CharField(max_length=20, choices=[('screen', 'Screen'), ('tab', 'Tab')], default='screen')
+    target = models.CharField(max_length=100, blank=True, verbose_name="টার্গেট (Screen Name or Tab Index)")
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
@@ -310,14 +313,26 @@ class HomeService(models.Model):
         ordering = ['order']
 
     def __str__(self):
-        return self.name
+        return self.title
 
 class Advertisement(models.Model):
     title = models.CharField(max_length=200, verbose_name="বিজ্ঞাপনের শিরোনাম")
     image = models.ImageField(upload_to='ads/', verbose_name="বিজ্ঞাপন ছবি")
     link = models.URLField(blank=True, null=True, verbose_name="লিংক (ঐচ্ছিক)")
     is_active = models.BooleanField(default=True, verbose_name="সক্রিয়?")
+    views = models.PositiveIntegerField(default=0, verbose_name="ইমপ্রেশন (Views)")
+    clicks = models.PositiveIntegerField(default=0, verbose_name="ক্লিকসমূহ")
+    target_views = models.PositiveIntegerField(default=0, verbose_name="টার্গেট ইমপ্রেশন", help_text="০ দিলে আনলিমিটেড")
+    priority = models.PositiveIntegerField(default=1, verbose_name="প্রায়োরিটি", help_text="বেশি হলে অ্যাড আগে দেখাবে")
+    start_date = models.DateField(null=True, blank=True, verbose_name="শুরুর তারিখ")
+    end_date = models.DateField(null=True, blank=True, verbose_name="শেষের তারিখ")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def ctr(self):
+        if self.views == 0:
+            return 0.0
+        return (self.clicks / self.views) * 100.0
 
     class Meta:
         verbose_name = "বিজ্ঞাপন"
@@ -326,3 +341,15 @@ class Advertisement(models.Model):
 
     def __str__(self):
         return self.title
+
+class AppConfiguration(models.Model):
+    is_admob_enabled = models.BooleanField(default=True, verbose_name="Google AdMob চালু?")
+    ad_carousel_interval = models.PositiveIntegerField(default=5, verbose_name="অ্যাড ক্যারোসেল বিরতি (সেকেন্ড)", help_text="বিজ্ঞাপন কত সেকেন্ড পর পর পরিবর্তন হবে")
+    admob_frequency = models.PositiveIntegerField(default=3, verbose_name="অ্যাডমোব ফ্রিকোয়েন্সি", help_text="কতটি লোকাল অ্যাড দেখানোর পর অ্যাডমোব শো করবে (যদি মিক্সড মোডে থাকে)")
+    
+    class Meta:
+        verbose_name = "অ্যাপ সেটিংস"
+        verbose_name_plural = "অ্যাপ সেটিংস"
+        
+    def __str__(self):
+        return "App Settings"

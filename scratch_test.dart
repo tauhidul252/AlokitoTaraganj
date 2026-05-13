@@ -1,6 +1,6 @@
 void main() {
   try {
-    dynamic x = null;
+    dynamic x;
     int y = x;
     print(y);
   } catch (e) {
@@ -24,7 +24,7 @@ void main() {
   }
 
   try {
-    dynamic n = null;
+    dynamic n;
     print(n[0]);
   } catch (e) {
     print("Test 4: $e");

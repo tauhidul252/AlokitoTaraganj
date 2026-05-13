@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../main.dart';
 
 class GovernmentServicesScreen extends StatefulWidget {
   const GovernmentServicesScreen({super.key});
@@ -33,18 +34,9 @@ class _GovernmentServicesScreenState extends State<GovernmentServicesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          'E-Services',
-          style: GoogleFonts.outfit(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black87),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
@@ -56,21 +48,15 @@ class _GovernmentServicesScreenState extends State<GovernmentServicesScreen> {
                 : GridView.builder(
                     padding: const EdgeInsets.all(20),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.0,
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.85,
                     ),
                     itemCount: _services.length,
                     itemBuilder: (context, index) {
                       final s = _services[index];
-                      return _buildInfos(
-                        context,
-                        s['title'] ?? '',
-                        _getIconData(s['icon']),
-                        Colors.blue,
-                        s['url'] ?? '',
-                      );
+                      return _buildInfos(context, s);
                     },
                   ),
       ),
@@ -89,53 +75,129 @@ class _GovernmentServicesScreenState extends State<GovernmentServicesScreen> {
     }
   }
 
-  Widget _buildInfos(BuildContext context, String title, IconData icon, Color color, String url) {
+  Widget _buildInfos(BuildContext context, Map<String, dynamic> s) {
+    final title = s['title'] ?? '';
+    final url = s['url'] ?? '';
+    final imageUrl = s['image'] ?? s['logo'];
+    final iconData = _getIconData(s['icon']);
+    const color = Colors.blue;
+
+    final hasImage = imageUrl != null && imageUrl.toString().isNotEmpty;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withOpacity(0.08),
             spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () async {
-            if (url.isEmpty) return;
-            final Uri uri = Uri.parse(url);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          borderRadius: BorderRadius.circular(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () async {
+              if (url.isEmpty) return;
+              final Uri uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: hasImage 
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Image Background
+                    Image.network(
+                      imageUrl.toString().startsWith('http') 
+                        ? imageUrl.toString() 
+                        : '${ApiService.baseUrl}${imageUrl.toString()}',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: color.withOpacity(0.05),
+                        child: Icon(iconData, size: 40, color: color),
+                      ),
+                    ),
+                    
+                    // Gradient Overlay (Only if image is present)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.1),
+                              Colors.black.withOpacity(0.7),
+                            ],
+                            stops: const [0.5, 0.7, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    // Title (White on Image)
+                    Positioned(
+                      left: 10,
+                      right: 10,
+                      bottom: 12,
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.5),
+                              offset: const Offset(0, 1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(iconData, size: 28, color: color),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF2D3142),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, size: 32, color: color),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF2D3142),
-                ),
-              ),
-            ],
           ),
         ),
       ),

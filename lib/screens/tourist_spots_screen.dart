@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../main.dart';
 
 class TouristSpotsScreen extends StatefulWidget {
   const TouristSpotsScreen({super.key});
@@ -33,18 +34,9 @@ class _TouristSpotsScreenState extends State<TouristSpotsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: Text(
-          'Explore Taraganj',
-          style: GoogleFonts.outfit(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(),
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
@@ -90,7 +82,7 @@ class _TouristSpotsScreenState extends State<TouristSpotsScreen> {
               aspectRatio: 16 / 9,
               child: imageUrl != null
                   ? Image.network(
-                      imageUrl.startsWith('http') ? imageUrl : 'http://10.0.2.2:8000$imageUrl',
+                      imageUrl.startsWith('http') ? imageUrl : '${ApiService.baseUrl}$imageUrl',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           _placeholderImage(),
