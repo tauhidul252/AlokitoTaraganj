@@ -46,6 +46,9 @@
                         {% elif field.name == 'is_published' %}{{ t.is_published }}
                         {% elif field.name == 'category' %}{{ t.category }}
                         {% elif field.name == 'author' %}{{ t.author }}
+                        {% elif field.name == 'is_breaking' %}ব্রেকিং নিউজ? (Breaking News?)
+                        {% elif field.name == 'breaking_type' %}নিউজ টাইপ (News Type)
+                        {% elif field.name == 'custom_breaking_type' %}অন্যান্য টাইপ লিখুন (Custom Type)
                         {% else %}{{ field.label }}{% endif %}
                     </label>
                     
@@ -170,6 +173,26 @@
         const modal = document.getElementById('history-modal');
         modal.classList.toggle('hidden');
         lucide.createIcons();
+    }
+
+    // Toggle custom breaking type field
+    const breakingTypeSelect = document.getElementById('id_breaking_type');
+    const customTypeContainer = document.getElementById('id_custom_breaking_type')?.closest('.flex-col');
+    
+    function updateCustomTypeVisibility() {
+        if (breakingTypeSelect && customTypeContainer) {
+            if (breakingTypeSelect.value === 'Other') {
+                customTypeContainer.style.display = 'flex';
+            } else {
+                customTypeContainer.style.display = 'none';
+            }
+        }
+    }
+
+    if (breakingTypeSelect) {
+        breakingTypeSelect.addEventListener('change', updateCustomTypeVisibility);
+        // Run on load
+        updateCustomTypeVisibility();
     }
 </script>
 {% endblock %}

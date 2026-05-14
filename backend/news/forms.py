@@ -21,7 +21,7 @@ class CategoryForm(forms.ModelForm):
 class NewsPostForm(forms.ModelForm):
     class Meta:
         model = NewsPost
-        fields = ['title', 'category', 'content', 'image', 'source', 'status']
+        fields = ['title', 'category', 'content', 'image', 'source', 'status', 'is_breaking', 'breaking_type', 'custom_breaking_type']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all',
@@ -42,13 +42,38 @@ class NewsPostForm(forms.ModelForm):
             'status': forms.Select(attrs={
                 'class': 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all'
             }),
+            'is_breaking': forms.CheckboxInput(attrs={
+                'class': 'w-5 h-5 rounded text-blue-600 focus:ring-blue-500 transition-all'
+            }),
+            'breaking_type': forms.Select(
+                choices=NewsPost.BREAKING_CHOICES,
+                attrs={
+                    'class': 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white',
+                }
+            ),
         }
+    
+    custom_breaking_type = forms.CharField(
+        required=False,
+        label="অন্যান্য টাইপ লিখুন (Custom Type)",
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all',
+            'placeholder': 'টাইপ এখানে লিখুন...'
+        })
+    )
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         self.t = kwargs.pop('t', None) # Get translation dictionary
         super(NewsPostForm, self).__init__(*args, **kwargs)
         
+        # Handle custom breaking type if it's not in choices
+        if self.instance.pk and self.instance.breaking_type:
+            choice_values = [c[0] for c in NewsPost.BREAKING_CHOICES]
+            if self.instance.breaking_type not in choice_values:
+                self.initial['breaking_type'] = 'Other'
+                self.initial['custom_breaking_type'] = self.instance.breaking_type
+
         # Set dynamic placeholders and labels if t is provided
         if self.t:
             if 'title' in self.fields: self.fields['title'].widget.attrs['placeholder'] = self.t.get('ph_title', '')
@@ -72,6 +97,26 @@ class NewsPostForm(forms.ModelForm):
             elif self.instance.pk and self.instance.status == 'approved' and not self.user.is_superuser:
                 self.fields['status'].disabled = True
                 self.fields['status'].help_text = "অনুমোদিত নিউজ শুধুমাত্র অ্যাডমিন পরিবর্তন করতে পারবেন।" if self.t and self.t.get('bn') else "Only Admin can change approved status."
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        bt = cleaned_data.get('breaking_type')
+        cbt = cleaned_data.get('custom_breaking_type')
+        
+        if bt == 'Other' and cbt:
+            cleaned_data['breaking_type'] = cbt
+            self.instance.breaking_type = cbt
+        else:
+            self.instance.breaking_type = bt
+            
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # breaking_type is already set in clean()
+        if commit:
+            instance.save()
+        return instance
 
 class AdminUserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -408,6 +453,9 @@ class AdvertisementForm(forms.ModelForm):
             'priority': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': '১ থেকে ১০'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
         }
+        help_texts = {
+            'image': 'সেরা ফলাফলের জন্য ৬০০x১০০ পিক্সেল সাইজের ইমেজ ব্যবহার করুন (Recommended: 600x100 px).',
+        }
 
 class AppConfigurationForm(forms.ModelForm):
     class Meta:
@@ -418,6 +466,11 @@ class AppConfigurationForm(forms.ModelForm):
             'is_local_ads_enabled_global': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'ad_carousel_interval': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 5'}),
             'admob_frequency': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 3'}),
+            'fraud_20m_limit': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 5'}),
+            'fraud_20m_window': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 20'}),
+            'fraud_2h_limit': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 10'}),
+            'fraud_2h_window': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 120'}),
+            'fraud_block_hours': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 2'}),
             
             # Per-page Checkboxes
             'show_admob_home': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
@@ -448,4 +501,17 @@ class AppConfigurationForm(forms.ModelForm):
             'show_local_government': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'show_admob_tourist': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'show_local_tourist': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_site_footer': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_site_footer': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+        }
+        help_texts = {
+            'is_admob_enabled_global': 'পুরো অ্যাপে AdMob বিজ্ঞাপন চালু বা বন্ধ করুন।',
+            'is_local_ads_enabled_global': 'পুরো অ্যাপে লোকাল (আপনার আপলোড করা) বিজ্ঞাপন চালু বা বন্ধ করুন।',
+            'ad_carousel_interval': 'কত সেকেন্ড পর পর ব্যানার বিজ্ঞাপন পরিবর্তন হবে।',
+            'admob_frequency': 'কতগুলো লোকাল অ্যাডের পর একটি AdMob অ্যাড শো করবে।',
+            'fraud_20m_limit': 'প্রথম সময় সীমার মধ্যে সর্বোচ্চ কতবার ক্লিক করা যাবে।',
+            'fraud_20m_window': 'প্রথম ক্লিক ট্র্যাকিং পিরিয়ড (মিনিটে)।',
+            'fraud_2h_limit': 'দ্বিতীয় সময় সীমার মধ্যে সর্বোচ্চ কতবার ক্লিক করা যাবে।',
+            'fraud_2h_window': 'দ্বিতীয় ক্লিক ট্র্যাকিং পিরিয়ড (মিনিটে)।',
+            'fraud_block_hours': 'লিমিট ক্রস করলে কত ঘণ্টার জন্য ওই ডিভাইস থেকে অ্যাড বন্ধ থাকবে।',
         }

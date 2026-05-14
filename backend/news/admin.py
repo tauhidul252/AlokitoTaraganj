@@ -3,9 +3,11 @@ from .models import (NewsPost, Category, ReporterProfile, BloodDonor,
     Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
     EducationInstitution, GovernmentService, ProfessionalService, 
     Complaint, HomeService, Hospital, Advertisement, AppConfiguration)
+from .forms import NewsPostForm, AppConfigurationForm
 
 @admin.register(AppConfiguration)
 class AppConfigurationAdmin(admin.ModelAdmin):
+    form = AppConfigurationForm
     def has_add_permission(self, request):
         return not AppConfiguration.objects.exists()
     
@@ -77,8 +79,9 @@ class ReporterProfileAdmin(admin.ModelAdmin):
 
 @admin.register(NewsPost)
 class NewsPostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'status', 'is_published', 'created_at')
-    list_filter = ('status', 'is_published', 'created_at')
+    form = NewsPostForm
+    list_display = ('title', 'author', 'status', 'is_published', 'is_breaking', 'breaking_type', 'created_at')
+    list_filter = ('status', 'is_published', 'is_breaking', 'breaking_type', 'created_at')
     search_fields = ('title', 'content')
     
     def get_queryset(self, request):

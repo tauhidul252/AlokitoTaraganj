@@ -48,6 +48,11 @@
                                     <span class="text-[10px] font-bold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md border border-gray-200 uppercase tracking-tighter">
                                         {{ news.category.name|default:"Uncategorized" }}
                                     </span>
+                                    {% if news.is_breaking %}
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md border border-blue-200 uppercase tracking-tighter">
+                                        {% if lang == 'bn' %}ব্রেকিং{% else %}Breaking{% endif %}
+                                    </span>
+                                    {% endif %}
                                     <div class="text-xs text-gray-500 sm:hidden">{{ news.author|default:"Admin" }}</div>
                                 </div>
                             </div>

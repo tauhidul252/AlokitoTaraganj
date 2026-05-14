@@ -209,7 +209,7 @@ class MainLayoutState extends State<MainLayout> {
         body: Column(
           children: [
             Expanded(child: _subPage ?? _screens[_selectedIndex]),
-            const AdBanner(), 
+            const AdBanner(placement: 'site_footer'), 
           ],
         ),
         bottomNavigationBar: Container(

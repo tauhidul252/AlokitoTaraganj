@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,7 +16,7 @@ class AdBanner extends StatefulWidget {
   const AdBanner({
     super.key, 
     this.mode = AdMode.auto,
-    this.placement = 'home',
+    required this.placement,
   });
 
   @override
@@ -27,8 +28,9 @@ class _AdBannerState extends State<AdBanner> {
   bool _isLoading = true;
   int _currentIndex = 0;
 
-  bool _isAdmobEnabled = true; // Enable by default as fallback
-  bool _isLocalEnabled = true;
+  bool _isAdmobEnabled = false; 
+  bool _isLocalEnabled = false;
+  bool _showAdmobCurrent = true;
   int _carouselInterval = 5;
   BannerAd? _bannerAd;
   bool _isAdmobLoaded = false;
@@ -38,9 +40,6 @@ class _AdBannerState extends State<AdBanner> {
 
   Timer? _refreshTimer;
   Timer? _rotationTimer;
-
-  int _localAdViewCount = 0;
-  int _admobFrequency = 3;
 
   @override
   void initState() {
@@ -64,19 +63,27 @@ class _AdBannerState extends State<AdBanner> {
 
       if (mounted) {
         setState(() {
-          _ads = ads.where((ad) => ad['is_active'] == true).toList();
+          var filteredAds = ads.where((ad) => ad['is_active'] == true).toList();
+          filteredAds.shuffle(); // Shuffle for variety
+          _ads = filteredAds;
           if (settings != null) {
+            AdHelper.updateFraudSettings(settings); // Sync fraud settings
             final wasEnabled = _isAdmobEnabled;
             
             // Per-page settings check
             final p = widget.placement;
             _isAdmobEnabled = settings['is_admob_enabled_global'] == true && 
                              settings['show_admob_$p'] == true;
+            
+            // Fraud protection
+            if (_isAdmobEnabled && await AdHelper.isAdBlocked()) {
+              _isAdmobEnabled = false;
+            }
+
             _isLocalEnabled = settings['is_local_ads_enabled_global'] == true && 
                              settings['show_local_$p'] == true;
 
             _carouselInterval = settings['ad_carousel_interval'] ?? 5;
-            _admobFrequency = settings['admob_frequency'] ?? 3;
 
             // Only load AdMob banner if newly enabled or not yet initiated
             if (_isAdmobEnabled && !_admobInitiated) {
@@ -108,20 +115,53 @@ class _AdBannerState extends State<AdBanner> {
 
   void _startRotationTimer() {
     _rotationTimer?.cancel();
-    // Start timer if there are any ads OR if admob is enabled
     if (_ads.isNotEmpty || _isAdmobEnabled) {
-      _rotationTimer = Timer.periodic(Duration(seconds: _carouselInterval), (timer) {
-        if (mounted) _nextAd();
+      int nextInterval;
+      
+      if (_showAdmobCurrent && _isAdmobEnabled && _isAdmobLoaded) {
+        // AdMob phase: 30 to 60 seconds random
+        nextInterval = Random().nextInt(31) + 30;
+      } else {
+        // Local phase: carousel interval
+        nextInterval = _carouselInterval;
+      }
+      
+      _rotationTimer = Timer(Duration(seconds: nextInterval), () {
+        if (mounted) {
+          _nextAd();
+          _startRotationTimer(); // Schedule next tick
+        }
       });
     }
   }
 
   void _nextAd() {
     setState(() {
-      _localAdViewCount++;
-      if (_ads.isNotEmpty) {
-        _currentIndex = (_currentIndex + 1) % _ads.length;
-        _onAdViewed(_currentIndex);
+      if (_showAdmobCurrent) {
+        // We were in AdMob phase
+        if (_isLocalEnabled && _ads.isNotEmpty) {
+          _showAdmobCurrent = false;
+          _currentIndex = 0;
+          _onAdViewed(_currentIndex);
+        } else {
+          // If no local ads, just refresh AdMob unit
+          _loadAdmobBanner();
+        }
+      } else {
+        // We were in Local phase
+        _currentIndex++;
+        if (_currentIndex >= _ads.length) {
+          // Finished a full rotation of local ads
+          if (_isAdmobEnabled && _isAdmobLoaded) {
+            _showAdmobCurrent = true;
+            _loadAdmobBanner(); // Refresh AdMob unit for the new phase
+          } else {
+            _currentIndex = 0;
+            _onAdViewed(_currentIndex);
+          }
+        } else {
+          _onAdViewed(_currentIndex);
+        }
       }
     });
   }
@@ -171,6 +211,7 @@ class _AdBannerState extends State<AdBanner> {
           print('ADMOB_DEBUG: AdMob banner loaded successfully');
           if (mounted) setState(() => _isAdmobLoaded = true);
         },
+        onAdClicked: (ad) => AdHelper.recordClick(),
         onAdFailedToLoad: (ad, err) {
           print('ADMOB_DEBUG: AdMob banner failed to load: ${err.message} (Code: ${err.code})');
           ad.dispose();
@@ -213,21 +254,10 @@ class _AdBannerState extends State<AdBanner> {
       return false;
     }
 
-    if (!_isAdmobEnabled) return false;
+    if (!_isAdmobEnabled || !_isAdmobLoaded || _bannerAd == null) return false;
+    if (!_isLocalEnabled || _ads.isEmpty) return true;
     
-    // If not loaded yet, we can't show it
-    if (!_isAdmobLoaded || _bannerAd == null) {
-      // Print reason for debugging if we expect it to show
-      if (_ads.isEmpty) print('ADMOB_DEBUG: AdMob enabled but not loaded yet.');
-      return false;
-    }
-
-    if (_ads.isEmpty) return true; // Always show admob if no local ads
-    
-    // Show admob based on frequency. 
-    // If frequency is 1, show every 2nd slot (index 1, 3, 5...)
-    // _localAdViewCount starts at 0 (1st slot).
-    return (_localAdViewCount % (_admobFrequency + 1)) != 0;
+    return _showAdmobCurrent;
   }
 
   @override

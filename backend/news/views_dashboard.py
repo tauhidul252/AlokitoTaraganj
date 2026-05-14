@@ -603,7 +603,8 @@ class AdsManagementView(LoginRequiredMixin, AdminOnlyRequiredMixin, TemplateView
         form = AppConfigurationForm(request.POST, instance=config)
         if form.is_valid():
             form.save()
-            return redirect('ads-management')
+            from django.urls import reverse
+            return redirect(reverse('ads-management') + '?config_saved=true')
         return self.render_to_response(self.get_context_data(config_form=form))
 
 class AdvertisementCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):

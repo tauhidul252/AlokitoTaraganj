@@ -30,11 +30,12 @@ class ApiService {
     return [];
   }
 
-  static Future<List<Map<String, dynamic>>> fetchNews({int? categoryId, String? search}) async {
+  static Future<List<Map<String, dynamic>>> fetchNews({int? categoryId, String? search, bool? breaking}) async {
     String path = 'api/v1/news/';
     List<String> params = [];
     if (categoryId != null && categoryId != 0) params.add('category=$categoryId');
     if (search != null && search.isNotEmpty) params.add('search=${Uri.encodeComponent(search)}');
+    if (breaking == true) params.add('breaking=true');
     
     if (params.isNotEmpty) {
       path += '?${params.join('&')}';

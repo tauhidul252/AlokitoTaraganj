@@ -28,6 +28,10 @@ class NewsPostListAPIView(generics.ListAPIView):
         if category_id and category_id != '0': # '0' represents 'All'
             queryset = queryset.filter(category_id=category_id)
             
+        is_breaking = self.request.query_params.get('breaking')
+        if is_breaking == 'true':
+            queryset = queryset.filter(is_breaking=True)
+            
         today_filter = self.request.query_params.get('today')
         if today_filter == 'true':
             from django.utils import timezone

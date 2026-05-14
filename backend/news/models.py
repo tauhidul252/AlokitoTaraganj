@@ -38,6 +38,15 @@ class NewsPost(models.Model):
     source = models.CharField(max_length=100, blank=True, verbose_name="উৎস")
     organization_name = models.CharField(max_length=150, blank=True, null=True, default='', verbose_name="সংস্থার নাম")
     is_published = models.BooleanField(default=False, verbose_name="প্রকাশিত?")
+    is_breaking = models.BooleanField(default=False, verbose_name="ব্রেকিং নিউজ?")
+    BREAKING_CHOICES = [
+        ('BREAKING', 'BREAKING'),
+        ('বিজ্ঞপ্তি', 'বিজ্ঞপ্তি (Notice)'),
+        ('ঘোষণা', 'ঘোষণা (Announcement)'),
+        ('জরুরি', 'জরুরি (Emergency)'),
+        ('Other', 'অন্যান্য (Other)'),
+    ]
+    breaking_type = models.CharField(max_length=50, default='BREAKING', verbose_name="ব্রেকিং টাইপ")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -317,7 +326,7 @@ class HomeService(models.Model):
 
 class Advertisement(models.Model):
     title = models.CharField(max_length=200, verbose_name="বিজ্ঞাপনের শিরোনাম")
-    image = models.ImageField(upload_to='ads/', verbose_name="বিজ্ঞাপন ছবি")
+    image = models.ImageField(upload_to='ads/', verbose_name="বিজ্ঞাপন ছবি", help_text="সেরা ফলাফলের জন্য ৬০০x১০০ পিক্সেল (আড়াআড়ি) সাইজের ইমেজ ব্যবহার করুন।")
     link = models.URLField(blank=True, null=True, verbose_name="লিংক (ঐচ্ছিক)")
     is_active = models.BooleanField(default=True, verbose_name="সক্রিয়?")
     views = models.PositiveIntegerField(default=0, verbose_name="ইমপ্রেশন (Views)")
@@ -338,6 +347,7 @@ class Advertisement(models.Model):
         ('blood', 'রক্তদান (Blood)'),
         ('complaint', 'অভিযোগ (Complaint)'),
         ('education', 'শিক্ষা প্রতিষ্ঠান (Education)'),
+        ('site_footer', 'Site Footer (Global Bottom)'),
     ]
     placement = models.CharField(max_length=50, choices=PLACEMENT_CHOICES, default='all', verbose_name="অ্যাড প্লেসমেন্ট")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -362,6 +372,13 @@ class AppConfiguration(models.Model):
     is_local_ads_enabled_global = models.BooleanField(default=True, verbose_name="গ্লোবাল লোকাল অ্যাড চালু?")
     ad_carousel_interval = models.PositiveIntegerField(default=5, verbose_name="অ্যাড ক্যারোসেল বিরতি (সেকেন্ড)")
     admob_frequency = models.PositiveIntegerField(default=3, verbose_name="অ্যাডমোব ফ্রিকোয়েন্সি")
+    
+    # Fraud Protection
+    fraud_20m_limit = models.IntegerField(default=5, verbose_name="Fraud: Limit 1 (Clicks)")
+    fraud_20m_window = models.IntegerField(default=20, verbose_name="Fraud: Window 1 (Minutes)")
+    fraud_2h_limit = models.IntegerField(default=10, verbose_name="Fraud: Limit 2 (Clicks)")
+    fraud_2h_window = models.IntegerField(default=120, verbose_name="Fraud: Window 2 (Minutes)")
+    fraud_block_hours = models.IntegerField(default=2, verbose_name="Fraud: Block Duration (Hours)")
     
     # Home Page
     show_admob_home = models.BooleanField(default=True, verbose_name="Home: AdMob")
@@ -409,6 +426,10 @@ class AppConfiguration(models.Model):
     
     show_admob_tourist = models.BooleanField(default=True, verbose_name="Tourist: AdMob")
     show_local_tourist = models.BooleanField(default=True, verbose_name="Tourist: Local Ads")
+
+    # Site Footer Banner (Marked banner in UI)
+    show_admob_site_footer = models.BooleanField(default=True, verbose_name="Site Footer: AdMob")
+    show_local_site_footer = models.BooleanField(default=True, verbose_name="Site Footer: Local Ads")
 
     class Meta:
         verbose_name = "অ্যাপ সেটিংস"

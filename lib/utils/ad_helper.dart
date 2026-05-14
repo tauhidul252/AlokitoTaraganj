@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 class AdHelper {
@@ -57,10 +58,92 @@ class AdHelper {
   static const int maxFailedLoadAttempts = 3;
   
   static int _newsClickCount = 0;
-  static int _nextAdClickThreshold = 2; // Initial threshold (random between 1-3)
+  static int _nextAdClickThreshold = 3; // Initial threshold (minimum 3 news)
   static final Random _random = Random();
 
-  static void loadInterstitialAd() {
+  // Fraud Protection Logic
+  static Future<bool> isAdBlocked() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // Get dynamic settings (fallback to defaults if not set)
+      final limit1 = prefs.getInt('fraud_20m_limit') ?? 5;
+      final window1 = prefs.getInt('fraud_20m_window') ?? 20;
+      final limit2 = prefs.getInt('fraud_2h_limit') ?? 10;
+      final window2 = prefs.getInt('fraud_2h_window') ?? 120;
+      final blockHours = prefs.getInt('fraud_block_hours') ?? 2;
+
+      // Check for active block
+      final blockTimeStr = prefs.getString('ad_block_until');
+      if (blockTimeStr != null) {
+        final blockTime = DateTime.parse(blockTimeStr);
+        if (DateTime.now().isBefore(blockTime)) {
+          print('ADMOB_DEBUG: Ads are still blocked until $blockTime');
+          return true;
+        }
+      }
+
+      // Check click thresholds
+      final clickTimes = prefs.getStringList('ad_clicks') ?? [];
+      final now = DateTime.now();
+      final clicks = clickTimes.map((t) => DateTime.parse(t)).toList();
+
+      // Rule 1: Custom limit in custom window 1
+      final clicksW1 = clicks.where((t) => now.difference(t).inMinutes <= window1).length;
+      if (clicksW1 >= limit1) return await _applyBlock(prefs, blockHours);
+
+      // Rule 2: Custom limit in custom window 2
+      final clicksW2 = clicks.where((t) => now.difference(t).inMinutes <= window2).length;
+      if (clicksW2 >= limit2) return await _applyBlock(prefs, blockHours);
+
+    } catch (e) {
+      debugPrint('Fraud Protection Error: $e');
+    }
+    return false;
+  }
+
+  static Future<void> updateFraudSettings(Map<String, dynamic> settings) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (settings.containsKey('fraud_20m_limit')) await prefs.setInt('fraud_20m_limit', settings['fraud_20m_limit']);
+      if (settings.containsKey('fraud_20m_window')) await prefs.setInt('fraud_20m_window', settings['fraud_20m_window']);
+      if (settings.containsKey('fraud_2h_limit')) await prefs.setInt('fraud_2h_limit', settings['fraud_2h_limit']);
+      if (settings.containsKey('fraud_2h_window')) await prefs.setInt('fraud_2h_window', settings['fraud_2h_window']);
+      if (settings.containsKey('fraud_block_hours')) await prefs.setInt('fraud_block_hours', settings['fraud_block_hours']);
+      print('ADMOB_DEBUG: Fraud settings updated from API');
+    } catch (e) {
+      debugPrint('Error updating fraud settings: $e');
+    }
+  }
+
+  static Future<bool> _applyBlock(SharedPreferences prefs, int hours) async {
+    final until = DateTime.now().add(Duration(hours: hours));
+    await prefs.setString('ad_block_until', until.toIso8601String());
+    print('ADMOB_DEBUG: Ads blocked for $hours hours.');
+    return true;
+  }
+
+  static Future<void> recordClick() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final clickTimes = prefs.getStringList('ad_clicks') ?? [];
+      clickTimes.add(DateTime.now().toIso8601String());
+      
+      // Keep only last 15 clicks to save space
+      if (clickTimes.length > 15) {
+        clickTimes.removeAt(0);
+      }
+      
+      await prefs.setStringList('ad_clicks', clickTimes);
+      print('ADMOB_DEBUG: Ad click recorded. Total clicks tracked: ${clickTimes.length}');
+    } catch (e) {
+      debugPrint('Error recording ad click: $e');
+    }
+  }
+
+  static Future<void> loadInterstitialAd() async {
+    if (await isAdBlocked()) return;
+
     InterstitialAd.load(
       adUnitId: interstitialAdUnitId,
       request: const AdRequest(),
@@ -89,6 +172,7 @@ class AdHelper {
     }
 
     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdClicked: (ad) => recordClick(),
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         loadInterstitialAd();
@@ -132,7 +216,7 @@ class AdHelper {
 
   static void _resetThreshold() {
     _newsClickCount = 0;
-    _nextAdClickThreshold = _random.nextInt(3) + 1; // Random number between 1 and 3
+    _nextAdClickThreshold = _random.nextInt(3) + 3; // Random number between 3 and 5
     print('ADMOB_DEBUG: Resetting Ad Threshold to: $_nextAdClickThreshold');
   }
 }

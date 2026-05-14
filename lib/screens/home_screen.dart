@@ -17,6 +17,7 @@ import 'complaint_box_screen.dart';
 import 'news_detail_screen.dart';
 import '../widgets/news_card.dart';
 import '../widgets/ad_banner.dart';
+import '../widgets/breaking_news_ticker.dart';
 import '../utils/ad_helper.dart';
 import '../utils/translations.dart';
 import '../utils/api_service.dart';
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isFetchingMoreNews = false;
   int _currentNewsPage = 1;
   bool _hasMoreNews = true;
+  List<dynamic> _breakingNews = [];
 
   @override
   void initState() {
@@ -100,6 +102,14 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoadingNews = false;
         });
         _generateAdPositions(0, initialNews.length);
+      }
+
+      // Fetch Breaking News
+      final breaking = await ApiService.fetchNews(breaking: true);
+      if (mounted) {
+        setState(() {
+          _breakingNews = breaking;
+        });
       }
     } catch (e) {
       if (mounted) setState(() => _isLoadingNews = false);
@@ -206,6 +216,24 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const SizedBox(height: 12),
               _buildNoticeCarousel(), // Changed back to Notice Carousel
+              if (_breakingNews.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                BreakingNewsTicker(
+                  text: _breakingNews.map((n) => n['title']).join(' • '),
+                  label: (_breakingNews.first['breaking_type']?.toString().trim().isNotEmpty == true)
+                      ? _breakingNews.first['breaking_type']
+                      : 'BREAKING',
+                  onTap: () {
+                    // Navigate to details of the first breaking news or a special screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NewsDetailScreen(newsData: _breakingNews.first),
+                      ),
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

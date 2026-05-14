@@ -17,7 +17,7 @@
     </div>
 
     <!-- 1. Global Settings Section (Hidden by Default) -->
-    <div id="global-config-section" class="hidden bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
+    <div id="global-config-section" class="{% if request.GET.config_saved != 'true' %}hidden{% endif %} bg-white rounded-2xl border border-gray-200 shadow-xl relative z-50">
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="p-1.5 bg-blue-100 rounded-lg">
@@ -37,17 +37,39 @@
                 <!-- Core Engine Settings (Grid) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {% for field in config_form %}
-                        {% if field.name == 'is_admob_enabled_global' or field.name == 'is_local_ads_enabled_global' or field.name == 'ad_carousel_interval' or field.name == 'admob_frequency' %}
+                        {% if field.name == 'is_admob_enabled_global' or field.name == 'is_local_ads_enabled_global' or field.name == 'ad_carousel_interval' or field.name == 'admob_frequency' or field.name == 'fraud_20m_limit' or field.name == 'fraud_20m_window' or field.name == 'fraud_2h_limit' or field.name == 'fraud_2h_window' or field.name == 'fraud_block_hours' %}
                         <div class="space-y-1.5">
                             {% if field.field.widget.input_type == 'checkbox' %}
-                            <label class="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors cursor-pointer h-full group shadow-sm">
-                                <span class="text-[13px] font-bold text-gray-700">{{ field.label }}</span>
+                            <label class="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors cursor-pointer h-full group/label shadow-sm">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[13px] font-bold text-gray-700">{{ field.label }}</span>
+                                    {% if field.help_text %}
+                                    <div class="group/info relative inline-block">
+                                        <i data-lucide="info" class="w-3.5 h-3.5 text-gray-300 hover:text-blue-500 transition-colors cursor-help"></i>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block w-64 p-3 bg-gray-900/95 backdrop-blur-sm text-white text-[11px] leading-relaxed rounded-xl shadow-2xl z-[100] border border-white/10 whitespace-normal text-center">
+                                            {{ field.help_text }}
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900/95"></div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
                                 <div class="relative inline-block scale-90 origin-right">
                                     {{ field }}
                                 </div>
                             </label>
                             {% else %}
-                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ field.label }}</label>
+                            <div class="flex items-center gap-1.5 ml-1">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ field.label }}</label>
+                                {% if field.help_text %}
+                                <div class="group/info relative inline-block">
+                                    <i data-lucide="info" class="w-3 h-3 text-gray-300 hover:text-blue-500 transition-colors cursor-help"></i>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/info:block w-64 p-3 bg-gray-900/95 backdrop-blur-sm text-white text-[11px] leading-relaxed rounded-xl shadow-2xl z-[100] border border-white/10 whitespace-normal text-center">
+                                        {{ field.help_text }}
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-8 border-transparent border-t-gray-900/95"></div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
                             {{ field }}
                             {% endif %}
                         </div>
@@ -65,7 +87,7 @@
                         {% regroup config_form by label|slice:":-7" as service_list %}
                         
                         <!-- Manual Grouping because template logic for regroup is tricky with Django forms -->
-                        {% for service in "Home,News,Emergency,Directory,Professional,Job Board,Complaint,Hospital,Doctor,Blood Bank,Transport,Education,Government,Tourist"|split:"," %}
+                        {% for service in "Home,News,Emergency,Directory,Professional,Job Board,Complaint,Hospital,Doctor,Blood Bank,Transport,Education,Government,Tourist,Site Footer"|split:"," %}
                         <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
                             <div class="flex items-center gap-2 border-b border-gray-50 pb-2">
                                 <span class="text-[11px] font-black text-blue-600 uppercase tracking-widest">{{ service }}</span>

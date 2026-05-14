@@ -21,7 +21,7 @@ class NewsPostSerializer(serializers.ModelSerializer):
             'content', 'image', 'source',
             'organization_name',
             'author_name', 'author_organization', 'is_verified',
-            'is_published', 'created_at',
+            'is_published', 'is_breaking', 'breaking_type', 'created_at',
         ]
 
     def get_is_verified(self, obj):
