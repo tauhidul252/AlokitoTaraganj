@@ -54,14 +54,7 @@
                 <i data-lucide="newspaper" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i> {{ t.news }}
             </a>
 
-            <!-- News Management Section (Visible to Admins and Moderators) -->
-            {% if user.is_superuser or is_moderator %}
-            <div class="px-4 mt-8 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">News Management</div>
-            
-            <a href="{% url 'dashboard-category-list' %}" class="flex items-center px-4 py-3.5 {% if 'categories' in request.path %}bg-blue-600 text-white shadow-lg shadow-blue-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold">
-                <i data-lucide="tag" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i> {{ t.categories }}
-            </a>
-            {% endif %}
+
 
             <!-- Admin Only Section -->
             {% if user.is_superuser %}
@@ -71,15 +64,11 @@
                 <i data-lucide="users" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i> {{ t.users }}
             </a>
             
-            <a href="{% url 'app-settings' %}" class="flex items-center px-4 py-3.5 {% if 'settings' in request.path %}bg-blue-600 text-white shadow-lg shadow-blue-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold">
-                <i data-lucide="settings" class="w-5 h-5 mr-3 transition-transform group-hover:scale-110"></i> App Settings
-            </a>
-
             <!-- Services Section -->
             <div class="px-4 mt-8 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">App Services</div>
 
-            <a href="{% url 'service-ad-list' %}" class="flex items-center px-4 py-3 {% if 'ads' in request.path %}bg-purple-600 text-white shadow-lg shadow-purple-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
-                <i data-lucide="megaphone" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Advertisements
+            <a href="{% url 'ads-management' %}" class="flex items-center px-4 py-3 {% if 'ads' in request.path %}bg-purple-600 text-white shadow-lg shadow-purple-600/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
+                <i data-lucide="megaphone" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Ads & Settings
             </a>
             <a href="{% url 'service-hospital-list' %}" class="flex items-center px-4 py-3 {% if 'hospitals' in request.path %}bg-blue-700 text-white shadow-lg shadow-blue-700/20{% else %}text-gray-400 hover:text-white hover:bg-white/5{% endif %} rounded-xl transition-all group font-semibold text-sm">
                 <i data-lucide="hospital" class="w-4 h-4 mr-3 transition-transform group-hover:scale-110"></i> Hospitals

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class EducationScreen extends StatefulWidget {
@@ -37,26 +38,33 @@ class _EducationScreenState extends State<EducationScreen> {
         preferredSize: Size.zero,
         child: Container(),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        color: Colors.brown,
-        child: _loading
-            ? const Center(child: CircularProgressIndicator(color: Colors.brown))
-            : _institutions.isEmpty
-                ? _buildEmpty()
-                : ListView.builder(
-                    itemCount: _institutions.length,
-                    padding: const EdgeInsets.all(20),
-                    itemBuilder: (context, index) {
-                      final item = _institutions[index];
-                      return _buildInstitutionTile(
-                        item['name'] ?? '',
-                        item['institution_type'] ?? '',
-                        Icons.school,
-                        _getColorForType(item['institution_type']),
-                      );
-                    },
-                  ),
+      body: Column(
+        children: [
+          const AdBanner(placement: 'education'),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadData,
+              color: Colors.brown,
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: Colors.brown))
+                  : _institutions.isEmpty
+                      ? _buildEmpty()
+                      : ListView.builder(
+                          itemCount: _institutions.length,
+                          padding: const EdgeInsets.all(20),
+                          itemBuilder: (context, index) {
+                            final item = _institutions[index];
+                            return _buildInstitutionTile(
+                              item['name'] ?? '',
+                              item['institution_type'] ?? '',
+                              Icons.school,
+                              _getColorForType(item['institution_type']),
+                            );
+                          },
+                        ),
+            ),
+          ),
+        ],
       ),
     );
   }

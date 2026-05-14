@@ -122,6 +122,7 @@ class HospitalListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = HospitalSerializer
 
 from django.db.models import F, FloatField, ExpressionWrapper, Case, When
+from django.db.models import F, Q, ExpressionWrapper, FloatField, Case, When
 from django.utils import timezone
 
 class AdvertisementListAPIView(generics.ListAPIView):
@@ -130,6 +131,10 @@ class AdvertisementListAPIView(generics.ListAPIView):
     def get_queryset(self):
         today = timezone.now().date()
         qs = Advertisement.objects.filter(is_active=True)
+        
+        placement = self.request.query_params.get('placement')
+        if placement:
+            qs = qs.filter(Q(placement=placement) | Q(placement='all'))
         
         # Filter out expired ads or future ads
         qs = qs.exclude(start_date__gt=today)

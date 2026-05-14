@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class JobBoardScreen extends StatefulWidget {
@@ -57,21 +58,28 @@ class _JobBoardScreenState extends State<JobBoardScreen> {
         preferredSize: Size.zero,
         child: Container(),
       ),
-      body: RefreshIndicator(
-        color: const Color(0xFF2563EB),
-        onRefresh: _load,
-        child: _loading
-            ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF2563EB)),
-              )
-            : _jobs.isEmpty
-            ? _buildEmpty()
-            : ListView.separated(
-                itemCount: _jobs.length,
-                padding: const EdgeInsets.all(20),
-                separatorBuilder: (_, _) => const SizedBox(height: 15),
-                itemBuilder: (context, index) => _buildJobCard(_jobs[index]),
-              ),
+      body: Column(
+        children: [
+          const AdBanner(placement: 'job_board'),
+          Expanded(
+            child: RefreshIndicator(
+              color: const Color(0xFF2563EB),
+              onRefresh: _load,
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Color(0xFF2563EB)),
+                    )
+                  : _jobs.isEmpty
+                      ? _buildEmpty()
+                      : ListView.separated(
+                          itemCount: _jobs.length,
+                          padding: const EdgeInsets.all(20),
+                          separatorBuilder: (_, _) => const SizedBox(height: 15),
+                          itemBuilder: (context, index) => _buildJobCard(_jobs[index]),
+                        ),
+            ),
+          ),
+        ],
       ),
     );
   }

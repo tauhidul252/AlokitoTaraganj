@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class HospitalScreen extends StatefulWidget {
@@ -66,6 +67,7 @@ class _HospitalScreenState extends State<HospitalScreen> {
       body: Column(
         children: [
           _buildHeader(context),
+          const AdBanner(placement: 'hospital'),
           Expanded(
             child: RefreshIndicator(
               color: const Color(0xFF0D9488),

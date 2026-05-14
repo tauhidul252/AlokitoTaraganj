@@ -17,6 +17,7 @@ import 'complaint_box_screen.dart';
 import 'news_detail_screen.dart';
 import '../widgets/news_card.dart';
 import '../widgets/ad_banner.dart';
+import '../utils/ad_helper.dart';
 import '../utils/translations.dart';
 import '../utils/api_service.dart';
 import '../main.dart';
@@ -329,12 +330,14 @@ class _HomeScreenState extends State<HomeScreen> {
             date: _formatDate(news['created_at']?.toString() ?? ''),
             imageUrl: news['image']?.toString() ?? '',
             onTap: () {
-               Navigator.push(
-                 context,
-                 MaterialPageRoute(
-                   builder: (context) => NewsDetailScreen(newsData: news),
-                 ),
-               );
+               AdHelper.showInterstitialAdWithFrequency(() {
+                 Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder: (context) => NewsDetailScreen(newsData: news),
+                   ),
+                 );
+               });
             },
           ),
         ),
@@ -346,7 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final mode = (adCount % 2 == 0) ? AdMode.local : AdMode.admob;
         widgets.add(Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: AdBanner(mode: mode),
+          child: AdBanner(mode: mode, placement: 'home'),
         ));
         adCount++;
       }

@@ -582,33 +582,43 @@ class HospitalDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView)
     template_name = 'news/service_confirm_delete.html'
 
 # Advertisement
-class AdvertisementListView(LoginRequiredMixin, AdminOnlyRequiredMixin, ListView):
-    model = Advertisement
-    template_name = 'news/service_list.html'
-    context_object_name = 'items'
+# Advertisement & Settings
+class AdsManagementView(LoginRequiredMixin, AdminOnlyRequiredMixin, TemplateView):
+    template_name = 'news/ads_management.html'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = "বিজ্ঞাপন তালিকা"
-        context['add_url'] = 'service-ad-create'
-        context['edit_url'] = 'service-ad-update'
-        context['delete_url'] = 'service-ad-delete'
-        context['fields'] = ['title', 'is_active', 'views', 'target_views', 'clicks', 'priority']
-        return context
+        ctx = super().get_context_data(**kwargs)
+        ctx['title'] = "অ্যাড ম্যানেজমেন্ট সেন্টার"
+        ctx['items'] = Advertisement.objects.all().order_by('-created_at')
+        config, _ = AppConfiguration.objects.get_or_create(id=1)
+        ctx['config_form'] = kwargs.get('config_form') or AppConfigurationForm(instance=config)
+        ctx['fields'] = ['title', 'placement', 'is_active', 'views', 'target_views', 'clicks', 'priority']
+        ctx['add_url'] = 'service-ad-create'
+        ctx['edit_url'] = 'service-ad-update'
+        ctx['delete_url'] = 'service-ad-delete'
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        config, _ = AppConfiguration.objects.get_or_create(id=1)
+        form = AppConfigurationForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            return redirect('ads-management')
+        return self.render_to_response(self.get_context_data(config_form=form))
 
 class AdvertisementCreateView(LoginRequiredMixin, AdminOnlyRequiredMixin, CreateView):
     model = Advertisement
     form_class = AdvertisementForm
     template_name = 'news/service_form.html'
-    success_url = reverse_lazy('service-ad-list')
+    success_url = reverse_lazy('ads-management')
 
 class AdvertisementUpdateView(LoginRequiredMixin, AdminOnlyRequiredMixin, UpdateView):
     model = Advertisement
     form_class = AdvertisementForm
     template_name = 'news/service_form.html'
-    success_url = reverse_lazy('service-ad-list')
+    success_url = reverse_lazy('ads-management')
 
 class AdvertisementDeleteView(LoginRequiredMixin, AdminOnlyRequiredMixin, DeleteView):
     model = Advertisement
-    success_url = reverse_lazy('service-ad-list')
+    success_url = reverse_lazy('ads-management')
     template_name = 'news/service_confirm_delete.html'

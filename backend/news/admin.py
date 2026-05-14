@@ -2,7 +2,48 @@ from django.contrib import admin
 from .models import (NewsPost, Category, ReporterProfile, BloodDonor, 
     Doctor, Job, EmergencyContact, BusSchedule, TouristSpot, 
     EducationInstitution, GovernmentService, ProfessionalService, 
-    Complaint, HomeService, Hospital, Advertisement)
+    Complaint, HomeService, Hospital, Advertisement, AppConfiguration)
+
+@admin.register(AppConfiguration)
+class AppConfigurationAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return not AppConfiguration.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = ('name', 'specialty', 'phone', 'is_available')
+
+@admin.register(Job)
+class JobAdmin(admin.ModelAdmin):
+    list_display = ('title', 'company', 'deadline', 'is_active')
+
+@admin.register(EmergencyContact)
+class EmergencyContactAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category', 'number', 'is_active')
+
+@admin.register(BusSchedule)
+class BusScheduleAdmin(admin.ModelAdmin):
+    list_display = ('route_name', 'departure_time', 'bus_type', 'fare')
+
+@admin.register(TouristSpot)
+class TouristSpotAdmin(admin.ModelAdmin):
+    list_display = ('title', 'location', 'is_active')
+
+@admin.register(EducationInstitution)
+class EducationInstitutionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'institution_type', 'location', 'is_active')
+
+@admin.register(ProfessionalService)
+class ProfessionalServiceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'category', 'phone', 'is_available')
+
+@admin.register(Complaint)
+class ComplaintAdmin(admin.ModelAdmin):
+    list_display = ('complaint_type', 'name', 'phone', 'is_resolved', 'created_at')
+    list_filter = ('is_resolved', 'complaint_type')
 
 @admin.register(BloodDonor)
 class BloodDonorAdmin(admin.ModelAdmin):

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../widgets/ad_banner.dart';
 import '../utils/api_service.dart';
 import 'professional_services_screen.dart';
 
@@ -44,6 +45,8 @@ class _DirectoryScreenState extends State<DirectoryScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            const AdBanner(placement: 'directory'),
+            const SizedBox(height: 10),
             Text(
               'Local Directory',
               style: GoogleFonts.outfit(

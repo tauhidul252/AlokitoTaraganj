@@ -119,11 +119,9 @@ urlpatterns = [
     path('services/hospitals/add/', views_dashboard.HospitalCreateView.as_view(), name='service-hospital-create'),
     path('services/hospitals/<int:pk>/edit/', views_dashboard.HospitalUpdateView.as_view(), name='service-hospital-update'),
     path('services/hospitals/<int:pk>/delete/', views_dashboard.HospitalDeleteView.as_view(), name='service-hospital-delete'),
-    # Advertisement
-    path('services/ads/', views_dashboard.AdvertisementListView.as_view(), name='service-ad-list'),
+    # Advertisement & Settings
+    path('services/ads/', views_dashboard.AdsManagementView.as_view(), name='ads-management'),
     path('services/ads/add/', views_dashboard.AdvertisementCreateView.as_view(), name='service-ad-create'),
     path('services/ads/<int:pk>/edit/', views_dashboard.AdvertisementUpdateView.as_view(), name='service-ad-update'),
     path('services/ads/<int:pk>/delete/', views_dashboard.AdvertisementDeleteView.as_view(), name='service-ad-delete'),
-    # App Settings
-    path('settings/', views_dashboard.AppConfigurationUpdateView.as_view(), name='app-settings'),
 ]

@@ -6,9 +6,16 @@
         <h3 class="text-2xl font-bold text-gray-800">{{ t.all_news }}</h3>
         <p class="text-gray-500 text-sm mt-1">{{ t.manage_members }}</p>
     </div>
-    <a href="{% url 'dashboard-news-create' %}" class="gradient-brand text-white px-5 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center w-full sm:w-auto justify-center">
-        <i data-lucide="plus" class="w-5 h-5 mr-2"></i> {{ t.add_post }}
-    </a>
+    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        {% if user.is_superuser or is_moderator %}
+        <a href="{% url 'dashboard-category-list' %}" class="bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl font-semibold shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center">
+            <i data-lucide="tag" class="w-5 h-5 mr-2 text-blue-600"></i> {{ t.categories }}
+        </a>
+        {% endif %}
+        <a href="{% url 'dashboard-news-create' %}" class="gradient-brand text-white px-5 py-2.5 rounded-xl font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center justify-center">
+            <i data-lucide="plus" class="w-5 h-5 mr-2"></i> {{ t.add_post }}
+        </a>
+    </div>
 </div>
 
 <div class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-gray-200">

@@ -118,4 +118,4 @@ class AdvertisementSerializer(serializers.ModelSerializer):
 class AppConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppConfiguration
-        fields = ['is_admob_enabled', 'ad_carousel_interval', 'admob_frequency']
+        fields = '__all__'

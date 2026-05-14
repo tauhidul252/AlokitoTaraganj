@@ -1,0 +1,268 @@
+{% extends "news/base.html" %}
+{% load dashboard_tags %}
+
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-[1600px] mx-auto space-y-5">
+    <!-- Action Bar -->
+    <div class="flex justify-end items-center gap-3">
+        <button type="button" onclick="document.getElementById('global-config-section').classList.toggle('hidden'); this.classList.toggle('bg-blue-50'); this.classList.toggle('border-blue-200');" 
+                class="bg-white border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-sm hover:bg-gray-50 active:scale-95 text-sm">
+            <i data-lucide="settings" class="w-4 h-4 text-blue-600"></i> Global Settings
+        </button>
+        <a href="{% url add_url %}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-100 active:scale-95 text-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Create New Ad
+        </a>
+    </div>
+
+    <!-- 1. Global Settings Section (Hidden by Default) -->
+    <div id="global-config-section" class="hidden bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="p-1.5 bg-blue-100 rounded-lg">
+                    <i data-lucide="settings-2" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 text-base tracking-tight">Global Ad Engine Configuration</h4>
+            </div>
+            <button type="button" onclick="document.getElementById('global-config-section').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Core Engine Settings (Grid) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {% for field in config_form %}
+                        {% if field.name == 'is_admob_enabled_global' or field.name == 'is_local_ads_enabled_global' or field.name == 'ad_carousel_interval' or field.name == 'admob_frequency' %}
+                        <div class="space-y-1.5">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                            <label class="flex items-center justify-between p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50 transition-colors cursor-pointer h-full group shadow-sm">
+                                <span class="text-[13px] font-bold text-gray-700">{{ field.label }}</span>
+                                <div class="relative inline-block scale-90 origin-right">
+                                    {{ field }}
+                                </div>
+                            </label>
+                            {% else %}
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{{ field.label }}</label>
+                            {{ field }}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Per Page Toggles (Grouped by Service) -->
+                <div class="p-5 bg-gray-50/30 rounded-2xl border border-gray-100">
+                    <h5 class="text-xs font-bold text-gray-700 mb-5 flex items-center gap-2">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-blue-600"></i> Per-Service Visibility Controls
+                    </h5>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {% regroup config_form by label|slice:":-7" as service_list %}
+                        
+                        <!-- Manual Grouping because template logic for regroup is tricky with Django forms -->
+                        {% for service in "Home,News,Emergency,Directory,Professional,Job Board,Complaint,Hospital,Doctor,Blood Bank,Transport,Education,Government,Tourist"|split:"," %}
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">
+                            <div class="flex items-center gap-2 border-b border-gray-50 pb-2">
+                                <span class="text-[11px] font-black text-blue-600 uppercase tracking-widest">{{ service }}</span>
+                            </div>
+                            <div class="space-y-2">
+                                {% for field in config_form %}
+                                    {% if service in field.label %}
+                                    <label class="flex items-center justify-between group cursor-pointer">
+                                        <span class="text-[11px] font-bold text-gray-500 group-hover:text-gray-700 transition-colors">
+                                            {% if "AdMob" in field.label %}AdMob Engine{% else %}Local Banner{% endif %}
+                                        </span>
+                                        <div class="scale-[0.7] origin-right">{{ field }}</div>
+                                    </label>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('global-config-section').classList.add('hidden')" 
+                            class="px-6 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-bold hover:bg-gray-50 transition-all text-sm">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-100 flex items-center gap-2 group text-sm">
+                        <i data-lucide="save" class="w-4 h-4 transition-transform group-hover:scale-110"></i> Apply Global Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Ad Campaigns Table -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="list" class="w-4 h-4 text-blue-600"></i>
+                <h4 class="font-bold text-gray-700 text-sm tracking-tight">Active Ad Campaigns</h4>
+            </div>
+            <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-widest">{{ items.count }} Total Campaigns</span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Ad Detail</th>
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Placement</th>
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Performance</th>
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-right text-[11px] font-black text-gray-400 uppercase tracking-widest">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in items %}
+                    <tr class="hover:bg-blue-50/10 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img src="{{ item.image.url }}" class="w-10 h-10 rounded-lg object-cover border border-gray-100 shadow-sm">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-bold text-gray-800 leading-tight">{{ item.title }}</span>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase mt-1">ID: #{{ item.pk }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-wider border border-blue-100">
+                                {{ item.get_placement_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3.5 text-xs font-bold text-gray-600">
+                                <span class="flex items-center gap-1.5"><i data-lucide="eye" class="w-3.5 h-3.5 text-gray-300"></i>{{ item.views }}</span>
+                                <span class="flex items-center gap-1.5"><i data-lucide="mouse-pointer-2" class="w-3.5 h-3.5 text-gray-300"></i>{{ item.clicks }}</span>
+                                <span class="text-blue-600 font-black px-1.5 py-0.5 bg-blue-50 rounded text-[11px]">{{ item.ctr|stringformat:".1f" }}%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if item.is_active %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 bg-green-50 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
+                                <div class="w-1 h-1 rounded-full bg-green-500 mr-1.5 shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div> Live
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 bg-gray-50 text-gray-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-100">
+                                <div class="w-1 h-1 rounded-full bg-gray-300 mr-1.5"></div> Paused
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-1.5">
+                                <a href="{% url edit_url item.pk %}" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+                                <a href="{% url delete_url item.pk %}" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all border border-transparent hover:border-red-100">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="px-6 py-16 text-center text-gray-400 font-medium text-sm">No active ad campaigns found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Premium Unified Inputs */
+    input[type="text"], input[type="number"], select, textarea {
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.825rem;
+        font-weight: 700;
+        color: #334155;
+        transition: all 0.2s;
+    }
+    input:focus, select:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+        background: #fff;
+    }
+
+    /* Standard Toggle Switch */
+    input[type="checkbox"] {
+        appearance: none;
+        width: 38px;
+        height: 22px;
+        background: #cbd5e1;
+        border-radius: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    input[type="checkbox"]:checked { background: #3b82f6; }
+    input[type="checkbox"]::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        top: 3px;
+        left: 3px;
+        transition: all 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    input[type="checkbox"]:checked::after { left: 19px; }
+
+    /* Animations */
+    .animate-in {
+        animation: animate-in 0.3s ease-out;
+    }
+    @keyframes animate-in {
+        from { opacity: 0; transform: scale(0.98) translateY(-10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+
+    // Logic for toggles
+    const globalAdmobToggle = document.querySelector('input[name="is_admob_enabled_global"]');
+    const perPageAdmobToggles = document.querySelectorAll('input[name^="show_admob_"]');
+    
+    const globalLocalToggle = document.querySelector('input[name="is_local_ads_enabled_global"]');
+    const perPageLocalToggles = document.querySelectorAll('input[name^="show_local_"]');
+
+    function updateStates(master, targets) {
+        if (!master) return;
+        const isOn = master.checked;
+        targets.forEach(toggle => {
+            toggle.disabled = !isOn;
+            const parentLabel = toggle.closest('label');
+            if (!isOn) {
+                parentLabel.classList.add('opacity-40', 'pointer-events-none', 'grayscale');
+            } else {
+                parentLabel.classList.remove('opacity-40', 'pointer-events-none', 'grayscale');
+            }
+        });
+    }
+
+    if (globalAdmobToggle) {
+        globalAdmobToggle.addEventListener('change', () => updateStates(globalAdmobToggle, perPageAdmobToggles));
+        updateStates(globalAdmobToggle, perPageAdmobToggles);
+    }
+    if (globalLocalToggle) {
+        globalLocalToggle.addEventListener('change', () => updateStates(globalLocalToggle, perPageLocalToggles));
+        updateStates(globalLocalToggle, perPageLocalToggles);
+    }
+</script>
+{% endblock %}

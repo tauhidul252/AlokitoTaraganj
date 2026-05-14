@@ -11,7 +11,12 @@ enum AdMode { local, admob, auto }
 
 class AdBanner extends StatefulWidget {
   final AdMode mode;
-  const AdBanner({super.key, this.mode = AdMode.auto});
+  final String placement;
+  const AdBanner({
+    super.key, 
+    this.mode = AdMode.auto,
+    this.placement = 'home',
+  });
 
   @override
   State<AdBanner> createState() => _AdBannerState();
@@ -23,6 +28,7 @@ class _AdBannerState extends State<AdBanner> {
   int _currentIndex = 0;
 
   bool _isAdmobEnabled = true; // Enable by default as fallback
+  bool _isLocalEnabled = true;
   int _carouselInterval = 5;
   BannerAd? _bannerAd;
   bool _isAdmobLoaded = false;
@@ -53,7 +59,7 @@ class _AdBannerState extends State<AdBanner> {
 
   Future<void> _loadAds() async {
     try {
-      final ads = await ApiService.fetchAds();
+      final ads = await ApiService.fetchAds(placement: widget.placement);
       final settings = await ApiService.fetchSettings();
 
       if (mounted) {
@@ -61,7 +67,14 @@ class _AdBannerState extends State<AdBanner> {
           _ads = ads.where((ad) => ad['is_active'] == true).toList();
           if (settings != null) {
             final wasEnabled = _isAdmobEnabled;
-            _isAdmobEnabled = settings['is_admob_enabled'] == true;
+            
+            // Per-page settings check
+            final p = widget.placement;
+            _isAdmobEnabled = settings['is_admob_enabled_global'] == true && 
+                             settings['show_admob_$p'] == true;
+            _isLocalEnabled = settings['is_local_ads_enabled_global'] == true && 
+                             settings['show_local_$p'] == true;
+
             _carouselInterval = settings['ad_carousel_interval'] ?? 5;
             _admobFrequency = settings['admob_frequency'] ?? 3;
 
@@ -223,8 +236,11 @@ class _AdBannerState extends State<AdBanner> {
       return const SizedBox.shrink();
     }
 
-    // Nothing to show
-    if (_ads.isEmpty && !_shouldShowAdmob) {
+    // Nothing to show (Local disabled or empty AND Admob disabled or empty)
+    bool showLocal = _isLocalEnabled && _ads.isNotEmpty;
+    bool showAdmob = _shouldShowAdmob;
+
+    if (!showLocal && !showAdmob) {
       return const SizedBox.shrink();
     }
 
@@ -234,7 +250,7 @@ class _AdBannerState extends State<AdBanner> {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-        child: _shouldShowAdmob
+        child: showAdmob
             ? SizedBox(key: const ValueKey('admob'), width: double.infinity, height: 60, child: AdWidget(ad: _bannerAd!))
             : SizedBox(height: 60, child: _buildLocalAd(_currentIndex)),
       ),

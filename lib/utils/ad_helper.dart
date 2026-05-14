@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:math';
 
 class AdHelper {
   static String get bannerAdUnitId {
@@ -54,6 +55,10 @@ class AdHelper {
   static InterstitialAd? _interstitialAd;
   static int _interstitialLoadAttempts = 0;
   static const int maxFailedLoadAttempts = 3;
+  
+  static int _newsClickCount = 0;
+  static int _nextAdClickThreshold = 2; // Initial threshold (random between 1-3)
+  static final Random _random = Random();
 
   static void loadInterstitialAd() {
     InterstitialAd.load(
@@ -98,5 +103,36 @@ class AdHelper {
 
     _interstitialAd!.show();
     _interstitialAd = null;
+  }
+
+  /// Shows interstitial ad based on random frequency (1-3 clicks)
+  static void showInterstitialAdWithFrequency(VoidCallback onComplete) {
+    _newsClickCount++;
+    
+    print('ADMOB_DEBUG: News click count: $_newsClickCount, Threshold: $_nextAdClickThreshold');
+
+    if (_newsClickCount >= _nextAdClickThreshold) {
+      // Show Ad
+      if (_interstitialAd != null) {
+        showInterstitialAd(() {
+          _resetThreshold();
+          onComplete();
+        });
+      } else {
+        // If ad is not ready, just proceed and try to load for next time
+        _resetThreshold();
+        loadInterstitialAd();
+        onComplete();
+      }
+    } else {
+      // Just proceed without ad
+      onComplete();
+    }
+  }
+
+  static void _resetThreshold() {
+    _newsClickCount = 0;
+    _nextAdClickThreshold = _random.nextInt(3) + 1; // Random number between 1 and 3
+    print('ADMOB_DEBUG: Resetting Ad Threshold to: $_nextAdClickThreshold');
   }
 }

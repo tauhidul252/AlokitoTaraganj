@@ -396,11 +396,12 @@ class HospitalForm(forms.ModelForm):
 class AdvertisementForm(forms.ModelForm):
     class Meta:
         model = Advertisement
-        fields = ['title', 'image', 'link', 'start_date', 'end_date', 'target_views', 'priority', 'is_active']
+        fields = ['title', 'image', 'link', 'placement', 'start_date', 'end_date', 'target_views', 'priority', 'is_active']
         widgets = {
             'title': forms.TextInput(attrs={'class': INPUT_CLASS, 'placeholder': 'বিজ্ঞাপনের শিরোনাম'}),
             'image': forms.FileInput(attrs={'class': FILE_CLASS}),
             'link': forms.URLInput(attrs={'class': INPUT_CLASS, 'placeholder': 'লিংক (ঐচ্ছিক)'}),
+            'placement': forms.Select(attrs={'class': INPUT_CLASS}),
             'start_date': forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'}),
             'target_views': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': '০ দিলে আনলিমিটেড'}),
@@ -411,9 +412,40 @@ class AdvertisementForm(forms.ModelForm):
 class AppConfigurationForm(forms.ModelForm):
     class Meta:
         model = AppConfiguration
-        fields = ['is_admob_enabled', 'ad_carousel_interval', 'admob_frequency']
+        fields = '__all__'
         widgets = {
-            'is_admob_enabled': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'is_admob_enabled_global': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'is_local_ads_enabled_global': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
             'ad_carousel_interval': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 5'}),
             'admob_frequency': forms.NumberInput(attrs={'class': INPUT_CLASS, 'placeholder': 'e.g. 3'}),
+            
+            # Per-page Checkboxes
+            'show_admob_home': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_home': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_news': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_news': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_emergency': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_emergency': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_directory': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_directory': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_professional': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_professional': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_job_board': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_job_board': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_complaint': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_complaint': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_hospital': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_hospital': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_doctor': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_doctor': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_blood': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_blood': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_transport': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_transport': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_education': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_education': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_government': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_government': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_admob_tourist': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
+            'show_local_tourist': forms.CheckboxInput(attrs={'class': 'w-5 h-5 rounded text-blue-600'}),
         }

@@ -107,8 +107,9 @@ class ApiService {
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
-  static Future<List<Map<String, dynamic>>> fetchAds() async {
-    final data = await _getList('api/v1/ads/');
+  static Future<List<Map<String, dynamic>>> fetchAds({String? placement}) async {
+    final path = placement != null ? 'api/v1/ads/?placement=$placement' : 'api/v1/ads/';
+    final data = await _getList(path);
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 

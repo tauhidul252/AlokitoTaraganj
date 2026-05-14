@@ -326,6 +326,20 @@ class Advertisement(models.Model):
     priority = models.PositiveIntegerField(default=1, verbose_name="প্রায়োরিটি", help_text="বেশি হলে অ্যাড আগে দেখাবে")
     start_date = models.DateField(null=True, blank=True, verbose_name="শুরুর তারিখ")
     end_date = models.DateField(null=True, blank=True, verbose_name="শেষের তারিখ")
+    PLACEMENT_CHOICES = [
+        ('all', 'সব পেজ (All)'),
+        ('home', 'হোম পেজ (Home)'),
+        ('news', 'নিউজ পেজ (News)'),
+        ('emergency', 'জরুরি সেবা (Emergency)'),
+        ('directory', 'ডিরেক্টরি (Directory)'),
+        ('hospital', 'হাসপাতাল (Hospital)'),
+        ('professional', 'পেশাজীবী সেবা (Professional)'),
+        ('job_board', 'জব বোর্ড (Jobs)'),
+        ('blood', 'রক্তদান (Blood)'),
+        ('complaint', 'অভিযোগ (Complaint)'),
+        ('education', 'শিক্ষা প্রতিষ্ঠান (Education)'),
+    ]
+    placement = models.CharField(max_length=50, choices=PLACEMENT_CHOICES, default='all', verbose_name="অ্যাড প্লেসমেন্ট")
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -343,10 +357,59 @@ class Advertisement(models.Model):
         return self.title
 
 class AppConfiguration(models.Model):
-    is_admob_enabled = models.BooleanField(default=True, verbose_name="Google AdMob চালু?")
-    ad_carousel_interval = models.PositiveIntegerField(default=5, verbose_name="অ্যাড ক্যারোসেল বিরতি (সেকেন্ড)", help_text="বিজ্ঞাপন কত সেকেন্ড পর পর পরিবর্তন হবে")
-    admob_frequency = models.PositiveIntegerField(default=3, verbose_name="অ্যাডমোব ফ্রিকোয়েন্সি", help_text="কতটি লোকাল অ্যাড দেখানোর পর অ্যাডমোব শো করবে (যদি মিক্সড মোডে থাকে)")
+    # Global settings
+    is_admob_enabled_global = models.BooleanField(default=True, verbose_name="গ্লোবাল AdMob চালু?")
+    is_local_ads_enabled_global = models.BooleanField(default=True, verbose_name="গ্লোবাল লোকাল অ্যাড চালু?")
+    ad_carousel_interval = models.PositiveIntegerField(default=5, verbose_name="অ্যাড ক্যারোসেল বিরতি (সেকেন্ড)")
+    admob_frequency = models.PositiveIntegerField(default=3, verbose_name="অ্যাডমোব ফ্রিকোয়েন্সি")
     
+    # Home Page
+    show_admob_home = models.BooleanField(default=True, verbose_name="Home: AdMob")
+    show_local_home = models.BooleanField(default=True, verbose_name="Home: Local Ads")
+    
+    # News Page
+    show_admob_news = models.BooleanField(default=True, verbose_name="News: AdMob")
+    show_local_news = models.BooleanField(default=True, verbose_name="News: Local Ads")
+    
+    # Emergency Page
+    show_admob_emergency = models.BooleanField(default=True, verbose_name="Emergency: AdMob")
+    show_local_emergency = models.BooleanField(default=True, verbose_name="Emergency: Local Ads")
+    
+    # Directory Page
+    show_admob_directory = models.BooleanField(default=True, verbose_name="Directory: AdMob")
+    show_local_directory = models.BooleanField(default=True, verbose_name="Directory: Local Ads")
+
+    # Service Pages
+    show_admob_professional = models.BooleanField(default=True, verbose_name="Professional: AdMob")
+    show_local_professional = models.BooleanField(default=True, verbose_name="Professional: Local Ads")
+    
+    show_admob_job_board = models.BooleanField(default=True, verbose_name="Job Board: AdMob")
+    show_local_job_board = models.BooleanField(default=True, verbose_name="Job Board: Local Ads")
+    
+    show_admob_complaint = models.BooleanField(default=True, verbose_name="Complaint: AdMob")
+    show_local_complaint = models.BooleanField(default=True, verbose_name="Complaint: Local Ads")
+    
+    show_admob_hospital = models.BooleanField(default=True, verbose_name="Hospital: AdMob")
+    show_local_hospital = models.BooleanField(default=True, verbose_name="Hospital: Local Ads")
+    
+    show_admob_doctor = models.BooleanField(default=True, verbose_name="Doctor: AdMob")
+    show_local_doctor = models.BooleanField(default=True, verbose_name="Doctor: Local Ads")
+    
+    show_admob_blood = models.BooleanField(default=True, verbose_name="Blood Bank: AdMob")
+    show_local_blood = models.BooleanField(default=True, verbose_name="Blood Bank: Local Ads")
+    
+    show_admob_transport = models.BooleanField(default=True, verbose_name="Transport: AdMob")
+    show_local_transport = models.BooleanField(default=True, verbose_name="Transport: Local Ads")
+    
+    show_admob_education = models.BooleanField(default=True, verbose_name="Education: AdMob")
+    show_local_education = models.BooleanField(default=True, verbose_name="Education: Local Ads")
+    
+    show_admob_government = models.BooleanField(default=True, verbose_name="Government: AdMob")
+    show_local_government = models.BooleanField(default=True, verbose_name="Government: Local Ads")
+    
+    show_admob_tourist = models.BooleanField(default=True, verbose_name="Tourist: AdMob")
+    show_local_tourist = models.BooleanField(default=True, verbose_name="Tourist: Local Ads")
+
     class Meta:
         verbose_name = "অ্যাপ সেটিংস"
         verbose_name_plural = "অ্যাপ সেটিংস"

@@ -178,7 +178,7 @@ class _NewsScreenState extends State<NewsScreen> {
         isVerified: news['is_verified'] ?? false,
         organizationName: news['author_organization'] ?? news['organization_name'],
         onTap: () {
-          AdHelper.showInterstitialAd(() {
+          AdHelper.showInterstitialAdWithFrequency(() {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -195,7 +195,7 @@ class _NewsScreenState extends State<NewsScreen> {
         final mode = (adCount % 2 == 0) ? AdMode.local : AdMode.admob;
         widgets.add(Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          child: AdBanner(mode: mode),
+          child: AdBanner(mode: mode, placement: 'news'),
         ));
         adCount++;
       }
@@ -412,7 +412,7 @@ class _NewsScreenState extends State<NewsScreen> {
                                 news['author_organization'] ??
                                 news['organization_name'],
                             onTap: () {
-                              AdHelper.showInterstitialAd(() {
+                              AdHelper.showInterstitialAdWithFrequency(() {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

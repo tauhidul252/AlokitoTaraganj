@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class BloodBankScreen extends StatefulWidget {
@@ -72,6 +73,8 @@ class _BloodBankScreenState extends State<BloodBankScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            const AdBanner(placement: 'blood'),
+            const SizedBox(height: 10),
             // Header banner
             Container(
               padding: const EdgeInsets.all(20),

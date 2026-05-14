@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class ComplaintBoxScreen extends StatefulWidget {
@@ -95,6 +96,8 @@ class _ComplaintBoxScreenState extends State<ComplaintBoxScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const AdBanner(placement: 'complaint'),
+              const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(

@@ -21,3 +21,7 @@ def get_attr(obj, attr_name):
             return value()
         return value
     return ''
+
+@register.filter(name='split')
+def split(value, arg):
+    return value.split(arg)

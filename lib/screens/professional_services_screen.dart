@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../utils/api_service.dart';
+import '../widgets/ad_banner.dart';
 import '../main.dart';
 
 class ProfessionalServicesScreen extends StatefulWidget {
@@ -53,6 +54,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
       body: Column(
         children: [
           _buildCategoryFilter(),
+          const AdBanner(placement: 'professional'),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadData,
