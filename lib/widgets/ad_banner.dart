@@ -60,6 +60,7 @@ class _AdBannerState extends State<AdBanner> {
     try {
       final ads = await ApiService.fetchAds(placement: widget.placement);
       final settings = await ApiService.fetchSettings();
+      final isBlocked = await AdHelper.isAdBlocked();
 
       if (mounted) {
         setState(() {
@@ -76,7 +77,7 @@ class _AdBannerState extends State<AdBanner> {
                              settings['show_admob_$p'] == true;
             
             // Fraud protection
-            if (_isAdmobEnabled && await AdHelper.isAdBlocked()) {
+            if (_isAdmobEnabled && isBlocked) {
               _isAdmobEnabled = false;
             }
 
